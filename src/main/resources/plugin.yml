@@ -1,0 +1,23 @@
+main: me.mmigas.EventSystem
+name: EventSystem
+description: A simple event plugin
+api-version: 1.16.1
+version: 1.0
+
+softdepend: [WorldGuard, WorldEdit, GriefPrevention]
+
+commands:
+  crate:
+    description: Crate commands
+  well:
+    description: Well commands
+  poço:
+    description: List item chances.
+
+permissions:
+  eventSystem.spawncrate:
+    default: op
+  eventSystem.startcrate:
+    default: op
+  eventSystem.stopcrate:
+    default: op
