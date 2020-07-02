@@ -52,6 +52,10 @@ public class CratesRepository {
         save();
     }
 
+    public void removeCrate(CrateEvent crate) {
+        removeCrate(crate.getId());
+    }
+
     public void removeCrate(int crateId) {
         String id = keyFromId(crateId);
         fileConfiguration.set(id, null);
@@ -67,10 +71,6 @@ public class CratesRepository {
         }
 
         return false;
-    }
-
-    public void removeCrate(CrateEvent crate) {
-        removeCrate(crate.getId());
     }
 
     public FileConfiguration getFileConfiguration() {

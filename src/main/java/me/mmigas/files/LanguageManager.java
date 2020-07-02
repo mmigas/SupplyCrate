@@ -32,17 +32,15 @@ public class LanguageManager {
     public static final String NO_PERMISSION = "&cNot enought permission!";
     public static final String MUST_BE_PLAYER = "&cYou must be a player!";
 
-    private static final String WISHING_WELLS_CATEGORY = "wishing-wells.";
-    public static final String WISHING_WELLS_DELAY_MESSAGE = WISHING_WELLS_CATEGORY + "delay-message";
-    public static final String WISHING_WELLS_ITEM_NOT_ACCEPTED = WISHING_WELLS_CATEGORY + "item-not-accepetd";
-    public static final String WISHING_WELLS_TOO_BAD = WISHING_WELLS_CATEGORY + "too-bad";
-    public static final String WISHING_WELLS_CONGRATS_MESSAGE = WISHING_WELLS_CATEGORY + "congrats-message";
+    private final String locationPlaceholder = "%CrateLocation%";
+    private final String playerPlaceholder = "%Player%";
+    private final String delayPlaceholder = "%Delay%";
 
     private static final String FILE = "language.yml";
 
-    private EventSystem plugin;
+    private final EventSystem plugin;
 
-    private Map<String, String> strings;
+    private final Map<String, String> strings;
 
     private static LanguageManager instance;
 
@@ -58,7 +56,7 @@ public class LanguageManager {
     private void save(FileConfiguration fileConfiguration) {
         File languageFile = new File(plugin.getDataFolder(), FILE);
 
-        if(languageFile.exists()) {
+        if (languageFile.exists()) {
             return;
         }
 
@@ -78,9 +76,9 @@ public class LanguageManager {
             configuration.load(languageFile);
 
             Set<String> keys = configuration.getKeys(false);
-            for(String key : keys) {
+            for (String key : keys) {
                 ConfigurationSection section = configuration.getConfigurationSection(key);
-                for(String string : Objects.requireNonNull(section).getKeys(false)) {
+                for (String string : Objects.requireNonNull(section).getKeys(false)) {
                     String value = Objects.requireNonNull(section.getString(string));
                     strings.put(key + "." + string, value);
                 }
@@ -96,19 +94,15 @@ public class LanguageManager {
         fileConfiguration.addDefault(CRATE_STOP, "&bCrate events cicle stoped.");
         fileConfiguration.addDefault(CRATE_CICLE_NOT_RUNNING, "&bThe crate event is not running.");
         fileConfiguration.addDefault(CRATE_CICLE_RUNNING, "&bThe crate event is already running.");
-        fileConfiguration.addDefault(CRATE_BROADCAST, "&bCrate spawned ate %careLocation%");
-        fileConfiguration.addDefault(CRATE_COLLECTED, "&bCrate collected by &a%player%");
+        fileConfiguration.addDefault(CRATE_BROADCAST, "&bCrate spawned at " + locationPlaceholder);
+        fileConfiguration.addDefault(CRATE_COLLECTED, "&bCrate collected by &a" + playerPlaceholder);
         fileConfiguration.addDefault(CRATE_CANNOT_BREAK, "&bYou cannot break this crate.");
-        fileConfiguration.addDefault(WISHING_WELLS_DELAY_MESSAGE, "&cYou cant make another wish for %delay% seconds!");
-        fileConfiguration.addDefault(WISHING_WELLS_ITEM_NOT_ACCEPTED, "&4That item isnt accepted in the well!");
-        fileConfiguration.addDefault(WISHING_WELLS_TOO_BAD, "&cOh no! You lost your item in the well. Too bad!");
-        fileConfiguration.addDefault(WISHING_WELLS_CONGRATS_MESSAGE, "&aYou got a new item back from the well!");
         fileConfiguration.options().copyDefaults(false);
         return fileConfiguration;
     }
 
     public static void broadcast(String message, Object... objects) {
-        for(Player player : Bukkit.getOnlinePlayers()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             LanguageManager.send(player, message, objects);
         }
@@ -121,27 +115,27 @@ public class LanguageManager {
     }
 
     private String updatePlaceholders(String message, Object... objects) {
-        if(message.contains("%careLocation%")) {
+        if (message.contains(locationPlaceholder)) {
             Location location = findLocationInObjects(objects);
-            message = message.replace("%careLocation%", "&bx: &c" + location.getBlockX() + " &bz: &c" + location.getBlockZ());
+            message = message.replace(locationPlaceholder, "&bx: &c" + location.getBlockX() + " &bz: &c" + location.getBlockZ());
         }
 
-        if(message.contains("%player%")) {
+        if (message.contains(playerPlaceholder)) {
             Player player = findPlayerInObjects(objects);
-            message = message.replace("%player%", player.getDisplayName());
+            message = message.replace(playerPlaceholder, player.getDisplayName());
         }
 
-        if(message.contains("%delay%")){
+        if (message.contains(delayPlaceholder)) {
             long storedTime = findStoredTimeInObjects(objects);
-            message = message.replace("%delay%", String.valueOf(((plugin.getConfig().getInt("Delay") * 1000) - (System.currentTimeMillis() - storedTime)) / 1000));
+            message = message.replace(delayPlaceholder, String.valueOf(((plugin.getConfig().getInt("Delay") * 1000) - (System.currentTimeMillis() - storedTime)) / 1000));
         }
 
         return message;
     }
 
     private Location findLocationInObjects(Object... objects) {
-        for(Object object : objects) {
-            if(object instanceof Location) {
+        for (Object object : objects) {
+            if (object instanceof Location) {
                 return (Location) object;
             }
         }
@@ -149,8 +143,8 @@ public class LanguageManager {
     }
 
     private Player findPlayerInObjects(Object... objects) {
-        for(Object object : objects) {
-            if(object instanceof Player) {
+        for (Object object : objects) {
+            if (object instanceof Player) {
                 return (Player) object;
             }
         }
@@ -158,9 +152,9 @@ public class LanguageManager {
 
     }
 
-    private Long findStoredTimeInObjects(Object... objects){
-        for(Object object : objects) {
-            if(object instanceof Long) {
+    private Long findStoredTimeInObjects(Object... objects) {
+        for (Object object : objects) {
+            if (object instanceof Long) {
                 return (long) object;
             }
         }

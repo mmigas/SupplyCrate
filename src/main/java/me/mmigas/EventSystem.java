@@ -1,25 +1,21 @@
 package me.mmigas;
 
 import me.mmigas.commands.CrateCommand;
-import me.mmigas.commands.PocoCommand;
-import me.mmigas.commands.WellCommand;
 import me.mmigas.files.ConfigManager;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.listeners.CrateInteractListener;
-import me.mmigas.listeners.DropsListener;
-import me.mmigas.listeners.FixCanceler;
 import me.mmigas.persistence.CratesRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class EventSystem extends JavaPlugin {
 
     private ConfigManager configManager;
     private EventController eventController;
-    private WishingWells wishingWell;
 
     private Map<String, Integer> tasks = new HashMap<>();
 
@@ -29,7 +25,6 @@ public class EventSystem extends JavaPlugin {
         eventController = new EventController(this, configManager);
         new LanguageManager(this);
         new CratesRepository(this);
-        wishingWell = new WishingWells(this, configManager);
         registerCommands();
         registerListener();
     }
@@ -42,14 +37,10 @@ public class EventSystem extends JavaPlugin {
     }
 
     private void registerCommands() {
-        getCommand("poço").setExecutor(new PocoCommand(this));
-        getCommand("well").setExecutor(new WellCommand(this));
-        getCommand("crate").setExecutor(new CrateCommand(eventController));
+        Objects.requireNonNull(getCommand("crate")).setExecutor(new CrateCommand(eventController));
     }
 
     private void registerListener() {
-        getServer().getPluginManager().registerEvents(new FixCanceler(), this);
-        getServer().getPluginManager().registerEvents(new DropsListener(this, configManager), this);
         getServer().getPluginManager().registerEvents(new CrateInteractListener(), this);
     }
 
@@ -65,7 +56,4 @@ public class EventSystem extends JavaPlugin {
         return tasks;
     }
 
-    public WishingWells getWishingWells() {
-        return wishingWell;
-    }
 }

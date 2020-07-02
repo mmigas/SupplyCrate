@@ -2,59 +2,44 @@ package me.mmigas.files;
 
 import me.mmigas.EventSystem;
 import me.mmigas.items.Enchantments;
-import me.mmigas.items.Items;
 import me.mmigas.utils.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
 
-import static me.mmigas.WishingWells.WELL_ID_LORE;
 
 public class ConfigManager {
 
     private final EventSystem plugin;
 
-    private static final String CRATE_CATEGORY = "care-package.";
-    public static final String CRATE_REWARDS = CRATE_CATEGORY + "rewards";
-    public static final String CRATE_SPEED = CRATE_CATEGORY + "speed";
-    public static final String CRATE_RADIUS = CRATE_CATEGORY + "radius";
-    public static final String CRATE_COOLDOWN = CRATE_CATEGORY + "cooldown";
-    public static final String CRATE_AUTOSTART = CRATE_CATEGORY + "autostart";
-    public static final String CRATE_WORLDS = CRATE_CATEGORY + "worlds";
+    public static final String CRATE_REWARDS = "rewards";
+    public static final String CRATE_SPEED = "speed";
+    public static final String CRATE_RADIUS = "radius";
+    public static final String CRATE_COOLDOWN = "cooldown";
+    public static final String CRATE_AUTOSTART = "autostart";
+    public static final String CRATE_WORLDS = "worlds";
 
-    private static final String WISHING_WELLS_CATEGORY = "whising-wells.";
-    public static final String WISHING_WELLS_ACCEPTED = WISHING_WELLS_CATEGORY + "accepted";
-    public static final String WISHING_WELLS_REWARDS = WISHING_WELLS_CATEGORY + "rewards";
-    public static final String WISHING_WELLS_WELL_LOCATION = WISHING_WELLS_CATEGORY + "well-locations";
+    private static final String NAME = "Name";
+    private static final String PERCENTAGE = "Percentage";
+    private static final String LORE = "Lore";
+    private static final String ENCHANTMENTS = "Enchantments";
 
-    private static final String FILE_NAME = "config.yml";
 
     public ConfigManager(EventSystem plugin) {
         this.plugin = plugin;
-        this.createInitial();
-    }
-
-    private void createInitial() {
-        File file = new File(plugin.getDataFolder(), FILE_NAME);
-        if (file.exists()) {
-            return;
-        }
-
-        try {
-            createDefaultConfig();
-            getConfig().save(file);
-        } catch (IOException e) {
-            plugin.getLogger().warning("Could not save the config file.");
-        }
+        createDefaultConfig();
+        getConfig().options().copyDefaults(true);
+        plugin.saveConfig();
     }
 
     private void createDefaultConfig() {
@@ -65,100 +50,94 @@ public class ConfigManager {
         config.addDefault(CRATE_AUTOSTART, true);
         config.addDefault(CRATE_WORLDS, Collections.singletonList("world"));
 
-        List<String> crateRewardList = new ArrayList<>();
-        crateRewardList.add("TNT 1 percentage:10");
-        crateRewardList.add("STONE 1 percentage:10");
-        crateRewardList.add("DIRT 1 percentage:10");
-        config.set(CRATE_REWARDS, crateRewardList);
+        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + NAME, "TNT");
+        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + PERCENTAGE, 10.5);
+        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + LORE, "THIS IS A FUCKING TNT");
+        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + ENCHANTMENTS + ".Sharpness", 1);
+        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + ENCHANTMENTS + ".Unbreaking", 2);
 
-        List<String> acceptedList = new ArrayList<>();
-        acceptedList.add("DIAMOND");
-        config.set(WISHING_WELLS_ACCEPTED, acceptedList);
+        config.addDefault(CRATE_REWARDS + ".Stone." + NAME, "Stone");
+        config.addDefault(CRATE_REWARDS + ".Stone." + PERCENTAGE, 11.5);
+        config.addDefault(CRATE_REWARDS + ".Stone." + LORE, "THIS IS A FUCKING TNT");
 
-        List<String> wWRewardsList = new ArrayList<>();
-        wWRewardsList.add("COOKED_BEEF 20 name:&9Deves_querer_beef. percentage:80.0");
-        wWRewardsList.add("ENCHANTED_GOLDEN_APPLE 1 percentage:10.0");
-        wWRewardsList.add("EXPERIENCE_BOTTLE 192 name:&aXP_&9Kubano lore:|&9Um_presente_dos_deuses_Kubanos. percentage:10.0");
-        config.set(WISHING_WELLS_REWARDS, wWRewardsList);
-        config.options().copyDefaults(true);
     }
 
-    public List<Pair<ItemStack, Double>> getRewardsList(String section, boolean isFromWell) {
-        List<Pair<ItemStack, Double>> rewardList = new ArrayList<>();
+    public List<Pair<ItemStack, Double>> readRewardsFromConfigs() {
+        List<Pair<ItemStack, Double>> rewards = new ArrayList<>();
+        for (String itemName : plugin.getConfig().getConfigurationSection(CRATE_REWARDS).getKeys(false)) {
+            Material material = Material.matchMaterial(itemName);
+            if (material != null) {
 
-        double previousPercentage = 0;
-        for (String string : Objects.requireNonNull(plugin.getConfig().getStringList(section))) {
-            Pair<ItemStack, Double> pair = readPair(string, previousPercentage, isFromWell);
-            rewardList.add(pair);
-            previousPercentage = pair.second;
-        }
-
-        return rewardList;
-    }
-
-    private Pair<ItemStack, Double> readPair(String message, double previousPercentage, boolean fromWishingWells) {
-        String[] parts = message.split(" ");
-
-        double probability = 0;
-        Material material = Material.matchMaterial(parts[0]);
-        if (material == null) {
-            throw new IllegalStateException(String.format("Material %s not found!", parts[0]));
-        }
-
-        ItemStack item = new ItemStack(material);
-        if (parts.length > 1) {
-            item.setAmount(Integer.parseInt(parts[1]));
-        }
-
-        for (int i = 2; i < parts.length; i++) {
-            String[] attrParts = parts[i].split(":");
-
-            if (attrParts[0].equalsIgnoreCase("name")) {
-                ItemMeta im = item.getItemMeta();
-                String name = ChatColor.translateAlternateColorCodes('&', attrParts[1].replace("_", " "));
-                im.setDisplayName(name);
-                item.setItemMeta(im);
-                continue;
-            }
-
-            if (attrParts[0].equalsIgnoreCase("lore")) {
-                String newLore = ChatColor.translateAlternateColorCodes('&', attrParts[1]).replace("_", " ");
-                Items.addLore(item, newLore.split("\\|"));
-                continue;
-            }
-
-            if (attrParts[0].equalsIgnoreCase("percentage")) {
-                probability = Double.parseDouble(attrParts[1]) + previousPercentage;
-                continue;
-            }
-
-            Enchantment enchantment = Enchantments.byName(attrParts[0]);
-            if (enchantment != null) {
-                try {
-                    item.addUnsafeEnchantment(enchantment, Integer.parseInt(attrParts[1]));
-                } catch (IllegalArgumentException e) {
-                    plugin.getLogger().warning(String.format("%s cannot be applied to %s", attrParts[0], parts[0]));
+                ItemStack itemStack = new ItemStack(material);
+                Pair<ItemStack, Double> reward = applyAtributes(itemStack, itemName, rewards.isEmpty() ? 0 : rewards.get(rewards.size() - 1).second);
+                if (reward != null) {
+                    rewards.add(reward);
                 }
             } else {
-                plugin.getLogger().warning(String.format("The enchantment %s does not exist.", attrParts[0]));
+                Bukkit.getLogger().log(Level.WARNING, "The name " + itemName + " isn't a valid material.");
             }
         }
 
-        if (fromWishingWells) {
-            Items.addLore(item, WELL_ID_LORE);
-        }
-
-        return new Pair<>(item, probability);
+        return rewards;
     }
 
-    public List<Material> readMaterialList(String section) {
-        List<Material> list = new ArrayList<>();
+    private Pair<ItemStack, Double> applyAtributes(ItemStack item, String itemName, double previousPercentage) {
+        String sectionName = CRATE_REWARDS + "." + itemName;
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(sectionName);
+        double percentage;
 
-        for (String string : getConfig().getStringList(section)) {
-            list.add(Material.matchMaterial(string));
+        percentage = readPercentage(section, itemName, previousPercentage);
+        if (percentage == -1) {
+            return null;
         }
 
-        return list;
+        applyName(section, item);
+        applyLore(section, item);
+        applyEnchantments(section, item);
+
+        return new Pair<>(item, percentage);
+    }
+
+    private void applyName(ConfigurationSection section, ItemStack item) {
+        if (section.contains(NAME)) {
+            String name = section.getString(NAME);
+            item.getItemMeta().setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+        }
+    }
+
+    private void applyLore(ConfigurationSection section, ItemStack item) {
+        if (section.contains(LORE)) {
+            List<String> lore = Arrays.asList(section.getString(LORE).split("\n"));
+            item.getItemMeta().setLore(lore);
+        }
+    }
+
+    private double readPercentage(ConfigurationSection section, String itemName, double prevPercentage) {
+        double percentage;
+        if (section.contains(PERCENTAGE)) {
+            percentage = section.getDouble(PERCENTAGE);
+
+            if (percentage >= 0) {
+                percentage = percentage + prevPercentage;
+                return percentage;
+            } else {
+                Bukkit.getLogger().log(Level.WARNING, String.format("The %s has an invalid percentage. Current percentage %d", itemName, percentage));
+                return -1;
+            }
+
+        } else {
+            Bukkit.getLogger().log(Level.WARNING, String.format("The %s has an no percentage.", itemName));
+            return -1;
+        }
+    }
+
+    private void applyEnchantments(ConfigurationSection section, ItemStack item) {
+        if (section.contains(ENCHANTMENTS)) {
+            for (String enchant : section.getConfigurationSection(ENCHANTMENTS).getKeys(false)) {
+                item.addEnchantment(Enchantments.byName(enchant), section.getConfigurationSection(ENCHANTMENTS).getInt(enchant));
+            }
+        }
+
     }
 
     public List<World> enabledCrateWorlds() {

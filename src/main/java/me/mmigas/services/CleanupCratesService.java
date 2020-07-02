@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -59,6 +60,7 @@ public class CleanupCratesService {
 
         Block block = world.getBlockAt(crateLocation);
         if (!block.getMetadata(CrateEvent.CRATE_METADATA).isEmpty()) {
+            ((Chest) block).getBlockInventory().clear();
             notify(sender, "Destroying old crate from " + stringDate);
             block.setType(Material.AIR);
         }

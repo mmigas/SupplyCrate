@@ -38,7 +38,7 @@ public class EventController {
         this.plugin = plugin;
         this.configManager = configManager;
 
-        rewards = configManager.getRewardsList(ConfigManager.CRATE_REWARDS, false);
+        rewards = configManager.readRewardsFromConfigs();
 
         if (configManager.getConfig().getBoolean(ConfigManager.CRATE_AUTOSTART)) {
             plugin.getTasks().put(

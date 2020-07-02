@@ -24,11 +24,11 @@ public class CrateInteractListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if(event.getClickedBlock() == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock().getType() != Material.CHEST) {
+        if (event.getClickedBlock() == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock().getType() != Material.CHEST) {
             return;
         }
         Chest chest = (Chest) event.getClickedBlock().getState();
-        if(!(chest.hasMetadata(CrateEvent.CRATE_METADATA))) {
+        if (!(chest.hasMetadata(CrateEvent.CRATE_METADATA))) {
             return;
         }
         event.setCancelled(true);
@@ -37,18 +37,18 @@ public class CrateInteractListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if(!(event.getInventory().getHolder() instanceof Chest) || !(event.getPlayer() instanceof Player)) {
+        if (!(event.getInventory().getHolder() instanceof Chest) || !(event.getPlayer() instanceof Player)) {
             return;
         }
 
         Chest chest = (Chest) event.getInventory().getHolder();
         int crateID = crateIDFromChest(chest);
-        if(crateID == -1) {
+        if (crateID == -1) {
             return;
         }
 
-        for(ItemStack item : chest.getInventory()) {
-            if(item != null)
+        for (ItemStack item : chest.getInventory()) {
+            if (item != null)
                 return;
         }
 
@@ -63,13 +63,13 @@ public class CrateInteractListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if(event.getBlock().getType() != Material.CHEST) {
+        if (event.getBlock().getType() != Material.CHEST) {
             return;
         }
 
         Chest chest = (Chest) event.getBlock().getState();
         int crateID = crateIDFromChest(chest);
-        if(crateID == -1) {
+        if (crateID == -1) {
             return;
         }
 
@@ -80,19 +80,19 @@ public class CrateInteractListener implements Listener {
     @EventHandler
     public void onPlayerArmorStandInteract(PlayerArmorStandManipulateEvent event) {
         ArmorStand stand = event.getRightClicked();
-        if(stand.hasMetadata(CrateEvent.CRATE_METADATA)) {
+        if (stand.hasMetadata(CrateEvent.CRATE_METADATA)) {
             event.setCancelled(true);
         }
     }
 
     private static int crateIDFromChest(Chest chest) {
         String chestCustomName = chest.getCustomName();
-        if(chestCustomName == null) {
+        if (chestCustomName == null) {
             return -1;
         }
 
         try {
-            int crateID = Integer.parseInt(chestCustomName.replace(CrateEvent.CRATE_NAME,""));
+            int crateID = Integer.parseInt(chestCustomName.replace(CrateEvent.CRATE_NAME, ""));
 
             CratesRepository cratesRepository = CratesRepository.getInstance();
             if (cratesRepository.checkCrateByID(crateID)) {

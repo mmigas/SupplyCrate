@@ -1,14 +1,21 @@
 package me.mmigas.commands.subcommands;
 
+import me.mmigas.EventController;
+import me.mmigas.commands.CMD;
 import me.mmigas.services.CleanupCratesService;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.logging.Level;
 
-public class CleanupCrates {
+public class CleanupCrates extends CMD {
 
-    public void cleanupCrates(CommandSender sender, String... args) {
+    public CleanupCrates(EventController eventController) {
+        super(eventController);
+    }
+
+    @Override
+    public void command(CommandSender sender, String... args) {
         CleanupCratesService service = new CleanupCratesService();
         if (args.length == 1) {
             service.cleanupCrates(sender, 30);
@@ -23,5 +30,10 @@ public class CleanupCrates {
                 Bukkit.getLogger().log(Level.WARNING, "Error while cleaning up old crates", e);
             }
         }
+    }
+
+    @Override
+    public String label() {
+        return "cleanup";
     }
 }

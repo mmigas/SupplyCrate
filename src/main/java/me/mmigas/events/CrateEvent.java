@@ -72,7 +72,7 @@ public class CrateEvent {
         ArmorStand stand = location.getWorld().spawn(location, ArmorStand.class);
         stand.setGravity(false);
         stand.setVisible(false);
-        stand.setHelmet(new ItemStack(Material.CHEST));
+        stand.getEquipment().setHelmet(new ItemStack(Material.CHEST));
         stand.setCollidable(false);
         stand.setInvulnerable(true);
         stand.setMarker(true);

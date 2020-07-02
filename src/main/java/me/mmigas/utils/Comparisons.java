@@ -16,8 +16,8 @@ public class Comparisons {
      * @return true if the object equals one of the other objects.
      */
     public static boolean equalsOne(Object object, Object... possibleObjects) {
-        for(Object possibleObject : possibleObjects) {
-            if(object.equals(possibleObject)) {
+        for (Object possibleObject : possibleObjects) {
+            if (object.equals(possibleObject)) {
                 return true;
             }
         }
