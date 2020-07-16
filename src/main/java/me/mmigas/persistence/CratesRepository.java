@@ -2,12 +2,18 @@ package me.mmigas.persistence;
 
 import me.mmigas.EventSystem;
 import me.mmigas.events.CrateEvent;
+import me.mmigas.events.Status;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class CratesRepository {
@@ -38,22 +44,18 @@ public class CratesRepository {
 
     public void addCrate(CrateEvent crate) {
         String id = keyFromId(crate.getId());
-
-        fileConfiguration.set(id + WORLD, Objects.requireNonNull(crate.getCurrentLocation().getWorld()).getName());
-        fileConfiguration.set(id + LOCATION_X, crate.getCurrentLocation().getX());
-        fileConfiguration.set(id + LOCATION_Y, crate.getCurrentLocation().getY());
-        fileConfiguration.set(id + LOCATION_Z, crate.getCurrentLocation().getZ());
+        Location location = crate.getCurrentLocation();
+        fileConfiguration.set(id + WORLD, (Objects.requireNonNull(location.getWorld())).getName());
+        fileConfiguration.set(id + LOCATION_X, location.getX());
+        fileConfiguration.set(id + LOCATION_Y, location.getY());
+        fileConfiguration.set(id + LOCATION_Z, location.getZ());
         fileConfiguration.set(id + STATUS, crate.getStatus().toString());
 
-        if (crate.getStatus() == CrateEvent.Status.LANDED) {
+        if (crate.getStatus() == Status.LANDED) {
             fileConfiguration.set(id + LANDING_TIME, crate.getLandingTime());
         }
 
         save();
-    }
-
-    public void removeCrate(CrateEvent crate) {
-        removeCrate(crate.getId());
     }
 
     public void removeCrate(int crateId) {
@@ -64,7 +66,7 @@ public class CratesRepository {
     }
 
     public boolean checkCrateByID(int id) {
-        for (String key : Objects.requireNonNull(fileConfiguration.getConfigurationSection(CRATE)).getKeys(false)) {
+        for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
             if (Integer.parseInt(key) == id) {
                 return true;
             }
@@ -106,6 +108,27 @@ public class CratesRepository {
         } catch (IOException | InvalidConfigurationException e) {
             throw new IllegalStateException("Could not load the crates storage file: " + e.getMessage());
         }
+    }
+
+    public List<Integer> getFallingCratesIDs() {
+        List<Integer> crates = new ArrayList<>();
+        if (fileConfiguration.getConfigurationSection(CRATE) != null) {
+            for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
+                if (fileConfiguration.getString(CRATE + "." + key + STATUS).equals(Status.FALLING.toString())) {
+                    crates.add(Integer.parseInt(key));
+                }
+            }
+        }
+        return crates;
+    }
+
+    public Location getCrateLocation(int crateId) {
+        int x = fileConfiguration.getInt(CRATE + "." + crateId + "." + LOCATION_X);
+        int y = fileConfiguration.getInt(CRATE + "." + crateId + "." + LOCATION_Y);
+        int z = fileConfiguration.getInt(CRATE + "." + crateId + "." + LOCATION_Z);
+        World world = Bukkit.getServer().getWorld(fileConfiguration.getString(CRATE + "." + crateId + WORLD));
+
+        return new Location(world, x, y, z);
     }
 
     private File getFile() {

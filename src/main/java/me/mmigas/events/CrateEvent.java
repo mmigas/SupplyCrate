@@ -2,7 +2,6 @@ package me.mmigas.events;
 
 import me.mmigas.EventController;
 import me.mmigas.files.ConfigManager;
-import me.mmigas.persistence.CratesRepository;
 import me.mmigas.utils.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -11,12 +10,10 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,52 +21,46 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class CrateEvent {
-
-    public enum Status {
-        FALLING,
-        LANDED
-    }
+public class CrateEvent implements Observer {
 
     public static final String CRATE_METADATA = "Crate";
     public static final String CRATE_NAME = "Crate: ";
 
     private Status status;
-    private Location currentLocation;
+    private ArmorStand stand;
+    private Location location;
     private LocalDateTime landingTime;
-    private int id;
+    private final int id;
     private final float speed;
 
+    private int taskID;
+
     private final EventController controller;
-    private final CratesRepository repository = CratesRepository.getInstance();
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss_dd-MM-yyyy");
     private static final Random RANDOM = new Random();
 
-    public CrateEvent(EventController controller, ConfigManager manager, Player player) {
+    public CrateEvent(EventController controller, ConfigManager manager, int id) {
         this.controller = controller;
 
         speed = (float) manager.getConfig().getDouble(ConfigManager.CRATE_SPEED);
-        carePackageEventPlayer(player);
+        this.id = id;
     }
 
-    public CrateEvent(EventController controller, ConfigManager manager, Location location) {
-        this.controller = controller;
+    public void startEvent(Location location) {
+        location.getWorld().loadChunk(location.getBlockX() >> 4, location.getBlockZ() >> 4, true);
+        location.getWorld().setChunkForceLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4, true);
+        this.location = location;
 
-        speed = (float) manager.getConfig().getDouble(ConfigManager.CRATE_SPEED);
-        startEvent(location);
+        armorStandSetup(location);
+
+        taskID = startCrateFall(speed);
+
+        status = Status.FALLING;
     }
 
-    private void carePackageEventPlayer(Player player) {
-        startEvent(player.getLocation().add(new Vector(0, 15f, 0)));
-    }
-
-    private void startEvent(Location location) {
-        location.getWorld().loadChunk(location.getChunk());
-        currentLocation = location;
-        id = RANDOM.nextInt();
-
-        ArmorStand stand = location.getWorld().spawn(location, ArmorStand.class);
+    public void armorStandSetup(Location location) {
+        stand = location.getWorld().spawn(location, ArmorStand.class);
         stand.setGravity(false);
         stand.setVisible(false);
         stand.getEquipment().setHelmet(new ItemStack(Material.CHEST));
@@ -77,35 +68,34 @@ public class CrateEvent {
         stand.setInvulnerable(true);
         stand.setMarker(true);
         stand.setMetadata(CRATE_METADATA, new FixedMetadataValue(controller.getPlugin(), CRATE_METADATA));
-
-        List<ItemStack> rewards = generateMaterials();
-        fallTask(stand, rewards);
-        status = Status.FALLING;
-        repository.addCrate(this);
     }
 
-    private void fallTask(ArmorStand stand, List<ItemStack> rewards) {
-        new BukkitRunnable() {
-            public void run() {
-                if (!stand.getLocation().getWorld().isChunkLoaded(stand.getLocation().getChunk())) {
-                    Bukkit.getLogger().info("Not loaded");
-                    stand.getLocation().getWorld().loadChunk(stand.getLocation().getChunk());
-                    return;
-                }
-                stand.teleport(stand.getLocation().subtract(0, speed, 0));
+    private int startCrateFall(float speed) {
+        return Bukkit.getScheduler().scheduleSyncRepeatingTask(controller.getPlugin(), () -> {
+            stand.teleport(stand.getLocation().subtract(0, speed, 0));
 
-                if (isOnGround(stand.getLocation(), stand.getWorld())) {
-                    stand.remove();
-                    status = Status.LANDED;
-                    spawnCrateChest(stand, rewards);
-                    stand.getLocation().getWorld().unloadChunk(stand.getLocation().getChunk());
-                    this.cancel();
-                }
+            if (isOnGround(stand.getLocation(), stand.getWorld())) {
+                fallIsOver(stand);
             }
-        }.runTaskTimer(controller.getPlugin(), 0L, 1L);
+        }, 0L, 1L);
     }
 
-    private void spawnCrateChest(ArmorStand stand, List<ItemStack> rewards) {
+    public void fallIsOver(ArmorStand stand) {
+        stopCrateFall();
+        status = Status.LANDED;
+        spawnCrateChest(stand);
+        stand.getLocation().getWorld().unloadChunk(stand.getLocation().getChunk());
+        stand.getLocation().getWorld().setChunkForceLoaded(stand.getLocation().getBlockX() >> 4, stand.getLocation().getBlockZ() >> 4, false);
+        controller.finishEvent(this);
+    }
+
+    @Override
+    public void stopCrateFall() {
+        Bukkit.getScheduler().cancelTask(taskID);
+        stand.remove();
+    }
+
+    private void spawnCrateChest(ArmorStand stand) {
         Block block = stand.getLocation().getBlock();
         block.setType(Material.CHEST);
 
@@ -114,18 +104,14 @@ public class CrateEvent {
         chest.setCustomName(CRATE_NAME + id);
         chest.update();
 
+        List<ItemStack> rewards = generateMaterials();
         Inventory inventory = chest.getInventory();
         for (ItemStack itemStack : rewards) {
             inventory.addItem(itemStack);
         }
 
         landingTime = LocalDateTime.now();
-        currentLocation = chest.getLocation();
-        repository.addCrate(this);
-    }
-
-    private boolean isOnGround(Location location, World world) {
-        return world.getBlockAt(location.subtract(0, 1, 0)).getType() != Material.AIR;
+        location = chest.getLocation();
     }
 
     private List<ItemStack> generateMaterials() {
@@ -153,12 +139,17 @@ public class CrateEvent {
         return rewards;
     }
 
+    private boolean isOnGround(Location location, World world) {
+        return world.getBlockAt(location.subtract(0, 1, 0)).getType() != Material.AIR;
+    }
+
     public Status getStatus() {
         return status;
     }
 
     public Location getCurrentLocation() {
-        return currentLocation;
+        Bukkit.getLogger().info("IS VALID:" + stand.isValid());
+        return stand.isValid() ? stand.getLocation() : location;
     }
 
     public String getLandingTime() {

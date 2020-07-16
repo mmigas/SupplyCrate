@@ -3,7 +3,6 @@ name: EventSystem
 description: A simple event plugin
 api-version: 1.16
 version: 1.0
-
 softdepend: [WorldGuard, WorldEdit, GriefPrevention]
 
 commands:

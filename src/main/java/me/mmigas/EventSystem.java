@@ -14,23 +14,23 @@ import java.util.Objects;
 
 public class EventSystem extends JavaPlugin {
 
-    private ConfigManager configManager;
     private EventController eventController;
 
-    private Map<String, Integer> tasks = new HashMap<>();
+    private final Map<String, Integer> tasks = new HashMap<>();
 
     @Override
     public void onEnable() {
-        configManager = new ConfigManager(this);
+        ConfigManager configManager = new ConfigManager(this);
+        new CratesRepository(this);
         eventController = new EventController(this, configManager);
         new LanguageManager(this);
-        new CratesRepository(this);
         registerCommands();
         registerListener();
     }
 
     @Override
     public void onDisable() {
+        eventController.stopFallingCrates();
         for (Map.Entry<String, Integer> entry : tasks.entrySet()) {
             Bukkit.getScheduler().cancelTask(entry.getValue());
         }

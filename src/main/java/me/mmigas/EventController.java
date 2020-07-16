@@ -6,8 +6,11 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.mmigas.events.CrateEvent;
+import me.mmigas.events.Observer;
+import me.mmigas.events.Status;
 import me.mmigas.files.ConfigManager;
 import me.mmigas.files.LanguageManager;
+import me.mmigas.persistence.CratesRepository;
 import me.mmigas.utils.Pair;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
@@ -17,26 +20,29 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class EventController {
 
     private final EventSystem plugin;
     private final ConfigManager configManager;
+    private final CratesRepository cratesRepository;
 
-    /*Create Event*/
     public static final String TIMERID = "CrateTimerTask";
-    private List<Pair<ItemStack, Double>> rewards;
+    private final List<Pair<ItemStack, Double>> rewards;
 
-    private Random random = new Random();
+    private final Random random;
 
     private int cratesCounter = 0;
+
+    private final List<Observer> events;
 
     EventController(EventSystem plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
+        this.random = new Random();
+        this.events = Collections.synchronizedList(new ArrayList<>());
+        this.cratesRepository = CratesRepository.getInstance();
 
         rewards = configManager.readRewardsFromConfigs();
 
@@ -46,6 +52,8 @@ public class EventController {
                     crateTimer(plugin.getConfig().getInt(ConfigManager.CRATE_COOLDOWN))
             );
         }
+
+        continueCrateEvents();
     }
 
     public void spawnCrate(Player player) {
@@ -58,17 +66,50 @@ public class EventController {
             player.sendMessage("GriefPrevention");
             return;
         }
-
-        new CrateEvent(this, configManager, player);
-        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, player.getLocation());
+        startCrateEvent(player.getLocation().add(0, 30, 0), random.nextInt());
     }
 
     public int crateTimer(long cooldown) {
         return Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             Location location = generateLocation();
-            LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, location);
-            new CrateEvent(this, configManager, location);
+            startCrateEvent(location, random.nextInt());
         }, cooldown * 1200, cooldown * 1200);
+    }
+
+    private void startCrateEvent(Location location, int id) {
+        CrateEvent event = new CrateEvent(this, configManager, id);
+        events.add(event);
+        event.startEvent(location);
+        cratesRepository.addCrate(event);
+        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, location);
+    }
+
+    private void continueCrateEvents() {
+        List<Integer> cratesID = CratesRepository.getInstance().getFallingCratesIDs();
+        for (Integer id : cratesID) {
+            startCrateEvent(CratesRepository.getInstance().getCrateLocation(id), id);
+        }
+    }
+
+    public void stopFallingCrates() {
+        List<Observer> toRemove = new ArrayList<>();
+        for (Observer observer : events) {
+            if (observer.getStatus() == Status.FALLING) {
+                updateCrateInRepository((CrateEvent) observer);
+                observer.stopCrateFall();
+                toRemove.add(observer);
+            }
+        }
+        events.removeAll(toRemove);
+    }
+
+    public void finishEvent(CrateEvent crateEvent) {
+        updateCrateInRepository(crateEvent);
+        events.remove(crateEvent);
+    }
+
+    private void updateCrateInRepository(CrateEvent crateEvent) {
+        cratesRepository.addCrate(crateEvent);
     }
 
     private Location generateLocation() {
