@@ -13,7 +13,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -117,25 +116,19 @@ public class CrateEvent implements Observer {
     private List<ItemStack> generateMaterials() {
         List<Pair<ItemStack, Double>> possibleRewards = controller.getRewards();
         List<ItemStack> rewards = new ArrayList<>();
+        int rewardsNumber = RANDOM.nextInt(3) + 1;
 
-        new BukkitRunnable() {
-            public void run() {
-                int rewardsNumber = RANDOM.nextInt(3) + 1;
-                nextreward:
-                for (int i = 0; i < rewardsNumber; i++) {
-                    double probabilityGenerated = RANDOM.nextDouble() * (possibleRewards.get(
-                            possibleRewards.size() - 1).second);
-                    for (Pair<ItemStack, Double> pair : possibleRewards) {
-                        if (probabilityGenerated < pair.second) {
-                            rewards.add(pair.first);
-                            continue nextreward;
-                        }
-                    }
+        nextreward:
+        for (int i = 0; i < rewardsNumber; i++) {
+            double probabilityGenerated = RANDOM.nextDouble() * (possibleRewards.get(
+                    possibleRewards.size() - 1).second);
+            for (Pair<ItemStack, Double> pair : possibleRewards) {
+                if (probabilityGenerated < pair.second) {
+                    rewards.add(pair.first);
+                    continue nextreward;
                 }
-                this.cancel();
             }
-        }.runTaskAsynchronously(controller.getPlugin());
-
+        }
         return rewards;
     }
 
@@ -148,7 +141,6 @@ public class CrateEvent implements Observer {
     }
 
     public Location getCurrentLocation() {
-        Bukkit.getLogger().info("IS VALID:" + stand.isValid());
         return stand.isValid() ? stand.getLocation() : location;
     }
 

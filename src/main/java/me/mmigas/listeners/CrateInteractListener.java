@@ -28,7 +28,7 @@ public class CrateInteractListener implements Listener {
             return;
         }
         Chest chest = (Chest) event.getClickedBlock().getState();
-        if (!(chest.hasMetadata(CrateEvent.CRATE_METADATA))) {
+        if (crateIDFromChest(chest) == -1 && !chest.hasMetadata(CrateEvent.CRATE_METADATA)) {
             return;
         }
         event.setCancelled(true);
@@ -43,7 +43,7 @@ public class CrateInteractListener implements Listener {
 
         Chest chest = (Chest) event.getInventory().getHolder();
         int crateID = crateIDFromChest(chest);
-        if (crateID == -1) {
+        if (crateID == -1 && !chest.hasMetadata(CrateEvent.CRATE_METADATA)) {
             return;
         }
 
