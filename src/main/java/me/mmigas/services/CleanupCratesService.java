@@ -4,7 +4,6 @@ import me.mmigas.events.CrateEvent;
 import me.mmigas.events.Status;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.persistence.CratesRepository;
-import me.mmigas.utils.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;

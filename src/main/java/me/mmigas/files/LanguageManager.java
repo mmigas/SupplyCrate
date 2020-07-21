@@ -32,9 +32,9 @@ public class LanguageManager {
     public static final String NO_PERMISSION = "&cNot enought permission!";
     public static final String MUST_BE_PLAYER = "&cYou must be a player!";
 
-    private final String locationPlaceholder = "%CrateLocation%";
-    private final String playerPlaceholder = "%Player%";
-    private final String delayPlaceholder = "%Delay%";
+    private static final String LOCATION_PLACEHOLDER = "%CrateLocation%";
+    private static final String PLAYER_PLACEHOLDER = "%Player%";
+    private static final String DELAY_PLACEHOLDER = "%Delay%";
 
     private static final String FILE = "language.yml";
 
@@ -94,8 +94,8 @@ public class LanguageManager {
         fileConfiguration.addDefault(CRATE_STOP, "&bCrate events cicle stoped.");
         fileConfiguration.addDefault(CRATE_CICLE_NOT_RUNNING, "&bThe crate event is not running.");
         fileConfiguration.addDefault(CRATE_CICLE_RUNNING, "&bThe crate event is already running.");
-        fileConfiguration.addDefault(CRATE_BROADCAST, "&bCrate spawned at " + locationPlaceholder);
-        fileConfiguration.addDefault(CRATE_COLLECTED, "&bCrate collected by &a" + playerPlaceholder);
+        fileConfiguration.addDefault(CRATE_BROADCAST, "&bCrate spawned at " + LOCATION_PLACEHOLDER);
+        fileConfiguration.addDefault(CRATE_COLLECTED, "&bCrate collected by &a" + PLAYER_PLACEHOLDER);
         fileConfiguration.addDefault(CRATE_CANNOT_BREAK, "&bYou cannot break this crate.");
         fileConfiguration.options().copyDefaults(false);
         return fileConfiguration;
@@ -120,19 +120,19 @@ public class LanguageManager {
     }
 
     private String updatePlaceholders(String message, Object... objects) {
-        if (message.contains(locationPlaceholder)) {
+        if (message.contains(LOCATION_PLACEHOLDER)) {
             Location location = findLocationInObjects(objects);
-            message = message.replace(locationPlaceholder, "&bx: &c" + location.getBlockX() + " &bz: &c" + location.getBlockZ());
+            message = message.replace(LOCATION_PLACEHOLDER, "&bx: &c" + location.getBlockX() + " &bz: &c" + location.getBlockZ());
         }
 
-        if (message.contains(playerPlaceholder)) {
+        if (message.contains(PLAYER_PLACEHOLDER)) {
             Player player = findPlayerInObjects(objects);
-            message = message.replace(playerPlaceholder, player.getDisplayName());
+            message = message.replace(PLAYER_PLACEHOLDER, player.getDisplayName());
         }
 
-        if (message.contains(delayPlaceholder)) {
+        if (message.contains(DELAY_PLACEHOLDER)) {
             long storedTime = findStoredTimeInObjects(objects);
-            message = message.replace(delayPlaceholder, String.valueOf(((plugin.getConfig().getInt("Delay") * 1000) - (System.currentTimeMillis() - storedTime)) / 1000));
+            message = message.replace(DELAY_PLACEHOLDER, String.valueOf(((plugin.getConfig().getInt("Delay") * 1000) - (System.currentTimeMillis() - storedTime)) / 1000));
         }
 
         return message;
