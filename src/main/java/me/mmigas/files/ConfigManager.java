@@ -11,6 +11,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,23 +44,27 @@ public class ConfigManager {
     }
 
     private void createDefaultConfig() {
-        FileConfiguration config = getConfig();
-        config.addDefault(CRATE_SPEED, 0.05);
-        config.addDefault(CRATE_RADIUS, 6000);
-        config.addDefault(CRATE_COOLDOWN, 30);
-        config.addDefault(CRATE_AUTOSTART, true);
-        config.addDefault(CRATE_WORLDS, Collections.singletonList("world"));
+        plugin.getDataFolder().mkdirs();
+        File configFile = new File(plugin.getDataFolder(), "config.yml");
+        if (!configFile.isFile()) {
+            FileConfiguration config = getConfig();
+            config.addDefault(CRATE_SPEED, 0.05);
+            config.addDefault(CRATE_RADIUS, 6000);
+            config.addDefault(CRATE_COOLDOWN, 30);
+            config.addDefault(CRATE_AUTOSTART, true);
+            config.addDefault(CRATE_WORLDS, Collections.singletonList("world"));
 
-        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + NAME, "TNT");
-        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + PERCENTAGE, 10.5);
-        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + LORE, "THIS IS A FUCKING TNT");
-        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + ENCHANTMENTS + ".Sharpness", 1);
-        config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + ENCHANTMENTS + ".Unbreaking", 2);
+            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + NAME, "TNT");
+            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + PERCENTAGE, 10.5);
+            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + LORE, "THIS IS A FUCKING TNT");
+            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + ENCHANTMENTS + ".Sharpness", 1);
+            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + ENCHANTMENTS + ".Unbreaking", 2);
 
-        config.addDefault(CRATE_REWARDS + ".Stone." + NAME, "Stone");
-        config.addDefault(CRATE_REWARDS + ".Stone." + PERCENTAGE, 11.5);
-        config.addDefault(CRATE_REWARDS + ".Stone." + LORE, "THIS IS A FUCKING TNT");
+            config.addDefault(CRATE_REWARDS + ".Stone." + NAME, "Stone");
+            config.addDefault(CRATE_REWARDS + ".Stone." + PERCENTAGE, 11.5);
+            config.addDefault(CRATE_REWARDS + ".Stone." + LORE, "THIS IS A FUCKING TNT");
 
+        }
     }
 
     public List<Pair<ItemStack, Double>> readRewardsFromConfigs() {
