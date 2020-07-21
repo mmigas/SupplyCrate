@@ -3,6 +3,7 @@ package me.mmigas.listeners;
 import me.mmigas.events.CrateEvent;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.persistence.CratesRepository;
+import me.mmigas.utils.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -16,7 +17,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.logging.Level;
 
@@ -28,7 +28,7 @@ public class CrateInteractListener implements Listener {
             return;
         }
         Chest chest = (Chest) event.getClickedBlock().getState();
-        if (crateIDFromChest(chest) == -1 && !chest.hasMetadata(CrateEvent.CRATE_METADATA)) {
+        if (crateIDFromChest(chest) == -1 || !chest.hasMetadata(CrateEvent.CRATE_METADATA)) {
             return;
         }
         event.setCancelled(true);
@@ -43,13 +43,8 @@ public class CrateInteractListener implements Listener {
 
         Chest chest = (Chest) event.getInventory().getHolder();
         int crateID = crateIDFromChest(chest);
-        if (crateID == -1 && !chest.hasMetadata(CrateEvent.CRATE_METADATA)) {
+        if (crateID == -1 || !InventoryUtil.isInventoryEmpty(chest.getInventory()) || !chest.hasMetadata(CrateEvent.CRATE_METADATA)) {
             return;
-        }
-
-        for (ItemStack item : chest.getInventory()) {
-            if (item != null)
-                return;
         }
 
         Player player = (Player) event.getPlayer();
@@ -74,7 +69,7 @@ public class CrateInteractListener implements Listener {
         }
 
         event.setCancelled(true);
-        LanguageManager.send(event.getPlayer(), LanguageManager.CRATE_CANNOT_BREAK);
+        LanguageManager.sendKey(event.getPlayer(), LanguageManager.CRATE_CANNOT_BREAK);
     }
 
     @EventHandler

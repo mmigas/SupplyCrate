@@ -25,11 +25,11 @@ public class StopCrate extends CMD {
             if (entry.getKey().equals(EventController.TIMERID)) {
                 Bukkit.getScheduler().cancelTask(entry.getValue());
                 eventController.getPlugin().getTasks().remove(entry.getKey());
-                LanguageManager.send(sender, LanguageManager.CRATE_STOP);
+                LanguageManager.sendKey(sender, LanguageManager.CRATE_STOP);
                 return;
             }
         }
-        LanguageManager.send(sender, LanguageManager.CRATE_CICLE_NOT_RUNNING);
+        LanguageManager.sendKey(sender, LanguageManager.CRATE_CICLE_NOT_RUNNING);
     }
 
     @Override

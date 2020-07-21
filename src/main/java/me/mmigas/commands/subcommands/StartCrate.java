@@ -22,12 +22,12 @@ public class StartCrate extends CMD {
 
         for (Map.Entry<String, Integer> entry : eventController.getPlugin().getTasks().entrySet()) {
             if (entry.getKey().equals(EventController.TIMERID)) {
-                LanguageManager.send(sender, LanguageManager.CRATE_CICLE_RUNNING);
+                LanguageManager.sendKey(sender, LanguageManager.CRATE_CICLE_RUNNING);
                 return;
             }
         }
 
-        LanguageManager.send(sender, LanguageManager.CRATE_START);
+        LanguageManager.sendKey(sender, LanguageManager.CRATE_START);
         eventController.getPlugin().getTasks().put(EventController.TIMERID,
                 eventController.crateTimer(eventController.getPlugin().getConfig().getInt(ConfigManager.CRATE_COOLDOWN)));
     }

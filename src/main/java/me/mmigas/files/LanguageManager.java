@@ -104,12 +104,17 @@ public class LanguageManager {
     public static void broadcast(String message, Object... objects) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            LanguageManager.send(player, message, objects);
+            LanguageManager.sendKey(player, message, objects);
         }
     }
 
-    public static void send(CommandSender sender, String key, Object... objects) {
+    public static void sendKey(CommandSender sender, String key, Object... objects) {
         String message = instance.strings.get(key);
+        message = instance.updatePlaceholders(message, objects);
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    }
+
+    public static void sendMessage(CommandSender sender, String message, Object... objects) {
         message = instance.updatePlaceholders(message, objects);
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }

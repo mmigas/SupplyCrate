@@ -109,7 +109,7 @@ public class EventController {
     }
 
     private void updateCrateInRepository(CrateEvent crateEvent) {
-        cratesRepository.addCrate(crateEvent);
+        cratesRepository.updateCrate(crateEvent);
     }
 
     private Location generateLocation() {

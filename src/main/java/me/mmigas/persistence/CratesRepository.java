@@ -6,6 +6,7 @@ import me.mmigas.events.Status;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -23,16 +24,16 @@ public class CratesRepository {
 
     private static CratesRepository instance;
 
-    private static final String CRATE = "crate";
-    private static final String STATUS = ".status";
-    private static final String WORLD = ".world";
-    private static final String LOCATION = ".location";
-    private static final String LOCATION_X = LOCATION + ".x";
-    private static final String LOCATION_Y = LOCATION + ".y";
-    private static final String LOCATION_Z = LOCATION + ".z";
-    private static final String LANDING_TIME = ".landing-time";
+    public static final String CRATE = "crate";
+    public static final String STATUS = "status";
+    public static final String WORLD = "world";
+    public static final String LOCATION = "location";
+    public static final String LOCATION_X = LOCATION + "x";
+    public static final String LOCATION_Y = LOCATION + "y";
+    public static final String LOCATION_Z = LOCATION + "z";
+    public static final String LANDING_TIME = "landing-time";
 
-    private static final String STORAGE_FILE_DIRECTORY = "storage" + File.separator + "Crate";
+    private static final String STORAGE_FILE_DIRECTORY = "storage";
     private static final String STORAGE_FILE_NAME = "Crates.yml";
 
     public CratesRepository(EventSystem plugin) {
@@ -45,23 +46,49 @@ public class CratesRepository {
     public void addCrate(CrateEvent crate) {
         String id = keyFromId(crate.getId());
         Location location = crate.getCurrentLocation();
-        fileConfiguration.set(id + WORLD, (Objects.requireNonNull(location.getWorld())).getName());
-        fileConfiguration.set(id + LOCATION_X, location.getX());
-        fileConfiguration.set(id + LOCATION_Y, location.getY());
-        fileConfiguration.set(id + LOCATION_Z, location.getZ());
-        fileConfiguration.set(id + STATUS, crate.getStatus().toString());
+        ConfigurationSection configuration = fileConfiguration;
+
+        configuration.createSection(id);
+        configuration = configuration.getConfigurationSection(id);
+        configuration.set(WORLD, (Objects.requireNonNull(location.getWorld())).getName());
+        configuration.set(LOCATION_X, location.getX());
+        configuration.set(LOCATION_Y, location.getY());
+        configuration.set(LOCATION_Z, location.getZ());
+        configuration.set(STATUS, crate.getStatus().toString());
 
         if (crate.getStatus() == Status.LANDED) {
-            fileConfiguration.set(id + LANDING_TIME, crate.getLandingTime());
+            configuration.set(LANDING_TIME, crate.getLandingTime());
         }
 
         save();
     }
 
+    public void updateCrate(CrateEvent crate) {
+        String id = keyFromId(crate.getId());
+        if (!fileConfiguration.isConfigurationSection(id)) {
+            Bukkit.getLogger().info("Crate not found!");
+            return;
+        }
+        Location location = crate.getCurrentLocation();
+
+        ConfigurationSection configuration = fileConfiguration.getConfigurationSection(id);
+        Bukkit.getLogger().info(location.getBlockX() + " " + location.getBlockY() + " " + location.getBlockZ());
+        configuration.set(LOCATION_X, location.getBlockX());
+        configuration.set(LOCATION_Y, location.getBlockY());
+        configuration.set(LOCATION_Z, location.getBlockZ());
+        configuration.set(STATUS, crate.getStatus().toString());
+        configuration.set(LANDING_TIME, crate.getLandingTime());
+        save();
+    }
+
     public void removeCrate(int crateId) {
         String id = keyFromId(crateId);
-        fileConfiguration.set(id, null);
+        removeCrate(id);
+    }
 
+    public void removeCrate(String crateId) {
+        Bukkit.getLogger().info(crateId);
+        fileConfiguration.set(CRATE + "." + crateId, null);
         save();
     }
 
@@ -104,6 +131,11 @@ public class CratesRepository {
         try {
             FileConfiguration configuration = new YamlConfiguration();
             configuration.load(file);
+            if (!configuration.isConfigurationSection(CRATE)) {
+                configuration.createSection(CRATE);
+                configuration.save(getFile());
+            }
+
             return configuration;
         } catch (IOException | InvalidConfigurationException e) {
             throw new IllegalStateException("Could not load the crates storage file: " + e.getMessage());
@@ -114,7 +146,7 @@ public class CratesRepository {
         List<Integer> crates = new ArrayList<>();
         if (fileConfiguration.getConfigurationSection(CRATE) != null) {
             for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
-                if (fileConfiguration.getString(CRATE + "." + key + STATUS).equals(Status.FALLING.toString())) {
+                if (Objects.equals(fileConfiguration.getString(CRATE + "." + key + "." + STATUS), Status.FALLING.toString())) {
                     crates.add(Integer.parseInt(key));
                 }
             }
@@ -126,7 +158,7 @@ public class CratesRepository {
         int x = fileConfiguration.getInt(CRATE + "." + crateId + "." + LOCATION_X);
         int y = fileConfiguration.getInt(CRATE + "." + crateId + "." + LOCATION_Y);
         int z = fileConfiguration.getInt(CRATE + "." + crateId + "." + LOCATION_Z);
-        World world = Bukkit.getServer().getWorld(fileConfiguration.getString(CRATE + "." + crateId + WORLD));
+        World world = Bukkit.getServer().getWorld(fileConfiguration.getString(CRATE + "." + crateId + "." + WORLD));
 
         return new Location(world, x, y, z);
     }
@@ -137,6 +169,10 @@ public class CratesRepository {
 
     private File storageFolder() {
         return new File(plugin.getDataFolder(), STORAGE_FILE_DIRECTORY);
+    }
+
+    public static Status getStatus(ConfigurationSection section) {
+        return section.getString(STATUS).equals(Status.FALLING.toString()) ? Status.FALLING : Status.LANDED;
     }
 
     private static String keyFromId(int id) {
