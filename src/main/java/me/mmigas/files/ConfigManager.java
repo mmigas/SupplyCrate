@@ -79,9 +79,7 @@ public class ConfigManager {
 
         applyName(section, item);
         applyLore(section, item);
-        Bukkit.getLogger().info(item.getType().toString());
         if (item.getType() == Material.POTION || item.getType() == Material.SPLASH_POTION) {
-            Bukkit.getLogger().info("APPLYING EFFECT");
             applyEffects(section, item);
         } else {
             applyEnchantments(section, item);
@@ -134,7 +132,6 @@ public class ConfigManager {
                 ConfigurationSection effectSection = section.getConfigurationSection(effect);
                 PotionEffectType potionEffectType = Potion.byName(effect);
 
-                Bukkit.getLogger().info(effect);
                 if (potionEffectType == null) {
                     Bukkit.getLogger().log(Level.WARNING, String.format("Effect %s doesn't exists.", effect));
                     continue;
@@ -153,7 +150,6 @@ public class ConfigManager {
                 } else {
                     Bukkit.getLogger().log(Level.WARNING, String.format("No multiplier found on %s effect in %s potion. Applying default.", effect, item.getItemMeta().getDisplayName()));
                 }
-                Bukkit.getLogger().info(duration + " " + amplifier);
                 potionMeta.addCustomEffect(new PotionEffect(potionEffectType, duration * 20, amplifier), true);
             }
             item.setItemMeta(potionMeta);
