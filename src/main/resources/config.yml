@@ -1,0 +1,41 @@
+speed: 1
+
+radius: 6000
+
+cooldown: 30
+
+autostart: true
+
+worlds:
+  - world
+
+rewards:
+  Diamond_Sword:
+    Name: TNT
+    Lore: THIS IS A FUCKING TNT
+    Percentage: 10
+    Enchantments:
+      Sharpness: 1
+      Unbreaking: 2
+  Potion:
+    Name: REGEN BITCHES
+    Lore: HEAL ME BITCH
+    Percentage: 30
+    Effects:
+      Regen:
+        Duration: 60
+        Multiplier: 4
+      Speed:
+        Duration: 60
+        Multiplier: 5
+  Splash_Potion:
+    Name: DIE DIE
+    Lore: Your death to me
+    Percentage: 50
+    Effects:
+      Harm:
+        Duration: 10
+        Multiplier: 10
+      Poison:
+        Duration: 10
+        Multiplier: 10

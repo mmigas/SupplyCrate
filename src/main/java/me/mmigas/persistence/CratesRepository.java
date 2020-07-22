@@ -72,7 +72,6 @@ public class CratesRepository {
         Location location = crate.getCurrentLocation();
 
         ConfigurationSection configuration = fileConfiguration.getConfigurationSection(id);
-        Bukkit.getLogger().info(location.getBlockX() + " " + location.getBlockY() + " " + location.getBlockZ());
         configuration.set(LOCATION_X, location.getBlockX());
         configuration.set(LOCATION_Y, location.getBlockY());
         configuration.set(LOCATION_Z, location.getBlockZ());

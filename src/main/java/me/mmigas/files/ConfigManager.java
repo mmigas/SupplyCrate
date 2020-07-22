@@ -2,6 +2,7 @@ package me.mmigas.files;
 
 import me.mmigas.EventSystem;
 import me.mmigas.items.Enchantments;
+import me.mmigas.items.Potion;
 import me.mmigas.utils.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,11 +11,13 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -33,38 +36,16 @@ public class ConfigManager {
     private static final String NAME = "Name";
     private static final String PERCENTAGE = "Percentage";
     private static final String LORE = "Lore";
+    private static final String EFFECTS = "Effects";
+    private static final String POTION_DURATION = "Duration";
+    private static final String POTION_MULTIPLIER = "Multiplier";
     private static final String ENCHANTMENTS = "Enchantments";
 
 
     public ConfigManager(EventSystem plugin) {
         this.plugin = plugin;
-        createDefaultConfig();
-        getConfig().options().copyDefaults(true);
-        plugin.saveConfig();
-    }
-
-    private void createDefaultConfig() {
-        plugin.getDataFolder().mkdirs();
-        File configFile = new File(plugin.getDataFolder(), "config.yml");
-        if (!configFile.isFile()) {
-            FileConfiguration config = getConfig();
-            config.addDefault(CRATE_SPEED, 0.05);
-            config.addDefault(CRATE_RADIUS, 6000);
-            config.addDefault(CRATE_COOLDOWN, 30);
-            config.addDefault(CRATE_AUTOSTART, true);
-            config.addDefault(CRATE_WORLDS, Collections.singletonList("world"));
-
-            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + NAME, "TNT");
-            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + PERCENTAGE, 10.5);
-            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + LORE, "THIS IS A FUCKING TNT");
-            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + ENCHANTMENTS + ".Sharpness", 1);
-            config.addDefault(CRATE_REWARDS + ".Diamond_Sword." + ENCHANTMENTS + ".Unbreaking", 2);
-
-            config.addDefault(CRATE_REWARDS + ".Stone." + NAME, "Stone");
-            config.addDefault(CRATE_REWARDS + ".Stone." + PERCENTAGE, 11.5);
-            config.addDefault(CRATE_REWARDS + ".Stone." + LORE, "THIS IS A FUCKING TNT");
-
-        }
+        plugin.getConfig().options().copyDefaults(true);
+        plugin.saveDefaultConfig();
     }
 
     public List<Pair<ItemStack, Double>> readRewardsFromConfigs() {
@@ -98,7 +79,13 @@ public class ConfigManager {
 
         applyName(section, item);
         applyLore(section, item);
-        applyEnchantments(section, item);
+        Bukkit.getLogger().info(item.getType().toString());
+        if (item.getType() == Material.POTION || item.getType() == Material.SPLASH_POTION) {
+            Bukkit.getLogger().info("APPLYING EFFECT");
+            applyEffects(section, item);
+        } else {
+            applyEnchantments(section, item);
+        }
 
         return new Pair<>(item, percentage);
     }
@@ -106,7 +93,9 @@ public class ConfigManager {
     private void applyName(ConfigurationSection section, ItemStack item) {
         if (section.contains(NAME)) {
             String name = section.getString(NAME);
-            item.getItemMeta().setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+            item.setItemMeta(meta);
         }
     }
 
@@ -136,13 +125,49 @@ public class ConfigManager {
         }
     }
 
+    private void applyEffects(ConfigurationSection section, ItemStack item) {
+        if (section.isConfigurationSection(EFFECTS)) {
+            section = section.getConfigurationSection(EFFECTS);
+            PotionMeta potionMeta = (PotionMeta) item.getItemMeta();
+
+            for (String effect : section.getKeys(false)) {
+                ConfigurationSection effectSection = section.getConfigurationSection(effect);
+                PotionEffectType potionEffectType = Potion.byName(effect);
+
+                Bukkit.getLogger().info(effect);
+                if (potionEffectType == null) {
+                    Bukkit.getLogger().log(Level.WARNING, String.format("Effect %s doesn't exists.", effect));
+                    continue;
+                }
+
+                int duration = 60;
+                int amplifier = 1;
+                if (effectSection.contains(POTION_DURATION)) {
+                    duration = effectSection.getInt(POTION_DURATION);
+                } else {
+                    Bukkit.getLogger().log(Level.WARNING, String.format("No duration found in %s effect in %s potion. Applying default.", effect, item.getItemMeta().getDisplayName()));
+                }
+
+                if (effectSection.contains(POTION_MULTIPLIER)) {
+                    amplifier = effectSection.getInt(POTION_MULTIPLIER);
+                } else {
+                    Bukkit.getLogger().log(Level.WARNING, String.format("No multiplier found on %s effect in %s potion. Applying default.", effect, item.getItemMeta().getDisplayName()));
+                }
+                Bukkit.getLogger().info(duration + " " + amplifier);
+                potionMeta.addCustomEffect(new PotionEffect(potionEffectType, duration * 20, amplifier), true);
+            }
+            item.setItemMeta(potionMeta);
+        } else {
+            Bukkit.getLogger().log(Level.WARNING, String.format("Effects not found for %s", item.getItemMeta().getDisplayName()));
+        }
+    }
+
     private void applyEnchantments(ConfigurationSection section, ItemStack item) {
         if (section.contains(ENCHANTMENTS)) {
             for (String enchant : section.getConfigurationSection(ENCHANTMENTS).getKeys(false)) {
                 item.addEnchantment(Enchantments.byName(enchant), section.getConfigurationSection(ENCHANTMENTS).getInt(enchant));
             }
         }
-
     }
 
     public List<World> enabledCrateWorlds() {
@@ -155,7 +180,6 @@ public class ConfigManager {
                 worlds.add(world);
             }
         }
-
         return worlds;
     }
 
