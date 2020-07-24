@@ -36,4 +36,14 @@ public class StopCrate extends CMD {
     public String label() {
         return "stop";
     }
+
+    @Override
+    public String usage() {
+        return "/crate stop";
+    }
+
+    @Override
+    public String description() {
+        return "Stops the automatic spawning of the crates.";
+    }
 }

@@ -2,6 +2,7 @@ package me.mmigas.commands;
 
 import me.mmigas.EventController;
 import me.mmigas.commands.subcommands.*;
+import me.mmigas.files.LanguageManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,7 +16,7 @@ public class CrateCommand implements CommandExecutor {
     private final List<CMD> commands = new ArrayList<>();
 
     public CrateCommand(EventController controller) {
-        commands.add(new Help(controller));
+        commands.add(new Help(controller, commands));
         commands.add(new SpawnCrate(controller));
         commands.add(new StartCrate(controller));
         commands.add(new StopCrate(controller));
@@ -36,7 +37,7 @@ public class CrateCommand implements CommandExecutor {
             }
         }
 
-        sender.sendMessage("Command not found!");
+        LanguageManager.sendMessage(sender, "Command not found! Use /crate help for all the commands usages.");
 
         return true;
     }

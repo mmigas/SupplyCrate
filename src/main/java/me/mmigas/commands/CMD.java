@@ -11,5 +11,10 @@ public abstract class CMD {
     }
 
     public abstract void command(CommandSender sender, String... args);
+
     public abstract String label();
+
+    public abstract String usage();
+
+    public abstract String description();
 }

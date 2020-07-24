@@ -86,7 +86,6 @@ public class CratesRepository {
     }
 
     public void removeCrate(String crateId) {
-        Bukkit.getLogger().info(crateId);
         fileConfiguration.set(crateId, null);
         save();
     }

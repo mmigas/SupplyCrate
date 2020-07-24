@@ -6,6 +6,10 @@ import static me.mmigas.utils.Comparisons.equalsOne;
 
 public class Potion {
 
+    private Potion() {
+
+    }
+
     public static PotionEffectType byName(String name) {
         name = name.toLowerCase();
         if (equalsOne(name, "speed", "swiftness")) {

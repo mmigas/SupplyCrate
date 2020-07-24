@@ -36,4 +36,16 @@ public class StartCrate extends CMD {
     public String label() {
         return "start";
     }
+
+    @Override
+    public String usage() {
+        return "/crate start";
+    }
+
+    @Override
+    public String description() {
+        return "Starts the automatic spawning of the crates.";
+    }
+
+
 }

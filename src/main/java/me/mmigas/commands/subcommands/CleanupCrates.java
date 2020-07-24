@@ -36,4 +36,14 @@ public class CleanupCrates extends CMD {
     public String label() {
         return "cleanup";
     }
+
+    @Override
+    public String usage() {
+        return "/crate cleanup {days}";
+    }
+
+    @Override
+    public String description() {
+        return "Cleans and destries all the crates that are older then inserted days.";
+    }
 }

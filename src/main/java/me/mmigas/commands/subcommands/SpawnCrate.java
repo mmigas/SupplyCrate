@@ -32,4 +32,14 @@ public class SpawnCrate extends CMD {
     public String label() {
         return "spawn";
     }
+
+    @Override
+    public String usage() {
+        return "/crate spawn";
+    }
+
+    @Override
+    public String description() {
+        return "Spawns a crate 30 blocks above the player.";
+    }
 }
