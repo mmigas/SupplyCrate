@@ -1,8 +1,9 @@
 package me.mmigas.persistence;
 
 import me.mmigas.EventSystem;
-import me.mmigas.events.CrateEvent;
-import me.mmigas.events.Status;
+import me.mmigas.crates.CrateEvent;
+import me.mmigas.crates.Status;
+import me.mmigas.utils.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -26,6 +27,7 @@ public class CratesRepository {
 
     public static final String CRATE = "crate";
     public static final String STATUS = "status";
+    public static final String TIER = "tier";
     public static final String WORLD = "world";
     public static final String LOCATION = "location";
     public static final String LOCATION_X = LOCATION + "x";
@@ -51,6 +53,7 @@ public class CratesRepository {
         configuration.createSection(id);
         configuration = configuration.getConfigurationSection(id);
         configuration.set(WORLD, (Objects.requireNonNull(location.getWorld())).getName());
+        configuration.set(TIER, crate.getCrateTier().getIdentifier());
         configuration.set(LOCATION_X, location.getX());
         configuration.set(LOCATION_Y, location.getY());
         configuration.set(LOCATION_Z, location.getZ());
@@ -72,6 +75,7 @@ public class CratesRepository {
         Location location = crate.getCurrentLocation();
 
         ConfigurationSection configuration = fileConfiguration.getConfigurationSection(id);
+        configuration.set(TIER, crate.getCrateTier().getName());
         configuration.set(LOCATION_X, location.getBlockX());
         configuration.set(LOCATION_Y, location.getBlockY());
         configuration.set(LOCATION_Z, location.getBlockZ());
@@ -86,6 +90,7 @@ public class CratesRepository {
     }
 
     public void removeCrate(String crateId) {
+        Bukkit.getLogger().info(crateId);
         fileConfiguration.set(crateId, null);
         save();
     }
@@ -140,12 +145,14 @@ public class CratesRepository {
         }
     }
 
-    public List<Integer> getFallingCratesIDs() {
-        List<Integer> crates = new ArrayList<>();
+    public List<Pair<String, Integer>> getFallingCratesIDsAndTiers() {
+        List<Pair<String, Integer>> crates = new ArrayList<>();
         if (fileConfiguration.getConfigurationSection(CRATE) != null) {
             for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
                 if (Objects.equals(fileConfiguration.getString(CRATE + "." + key + "." + STATUS), Status.FALLING.toString())) {
-                    crates.add(Integer.parseInt(key));
+                    String tier = fileConfiguration.getString(CRATE + "." + key + "." + TIER);
+                    Pair<String, Integer> pair = new Pair<>(tier, Integer.parseInt(key));
+                    crates.add(pair);
                 }
             }
         }

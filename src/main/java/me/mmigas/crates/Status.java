@@ -1,4 +1,4 @@
-package me.mmigas.events;
+package me.mmigas.crates;
 
 public enum Status {
     FALLING,

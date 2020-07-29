@@ -1,6 +1,6 @@
 package me.mmigas.commands;
 
-import me.mmigas.EventController;
+import me.mmigas.crates.CrateController;
 import me.mmigas.commands.subcommands.*;
 import me.mmigas.files.LanguageManager;
 import org.bukkit.command.Command;
@@ -15,12 +15,15 @@ public class CrateCommand implements CommandExecutor {
 
     private final List<CMD> commands = new ArrayList<>();
 
-    public CrateCommand(EventController controller) {
+    public static final String PERMISSION_PREFIX = "supplyDrop.";
+
+    public CrateCommand(CrateController controller) {
         commands.add(new Help(controller, commands));
         commands.add(new SpawnCrate(controller));
         commands.add(new StartCrate(controller));
         commands.add(new StopCrate(controller));
         commands.add(new CleanupCrates(controller));
+        commands.add(new Timer(controller));
     }
 
     @Override
@@ -32,6 +35,9 @@ public class CrateCommand implements CommandExecutor {
 
         for (CMD cmd : commands) {
             if (cmd.label().equalsIgnoreCase(args[0])) {
+                if (!sender.hasPermission(cmd.permission())) {
+                    break;
+                }
                 cmd.command(sender, args);
                 return true;
             }

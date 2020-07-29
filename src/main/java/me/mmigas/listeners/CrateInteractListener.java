@@ -1,6 +1,6 @@
 package me.mmigas.listeners;
 
-import me.mmigas.events.CrateEvent;
+import me.mmigas.crates.CrateEvent;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.persistence.CratesRepository;
 import me.mmigas.utils.InventoryUtil;

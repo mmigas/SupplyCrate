@@ -1,6 +1,6 @@
 package me.mmigas.commands.subcommands;
 
-import me.mmigas.EventController;
+import me.mmigas.crates.CrateController;
 import me.mmigas.commands.CMD;
 import me.mmigas.services.CleanupCratesService;
 import org.bukkit.Bukkit;
@@ -10,8 +10,8 @@ import java.util.logging.Level;
 
 public class CleanupCrates extends CMD {
 
-    public CleanupCrates(EventController eventController) {
-        super(eventController);
+    public CleanupCrates(CrateController crateController) {
+        super(crateController);
     }
 
     @Override

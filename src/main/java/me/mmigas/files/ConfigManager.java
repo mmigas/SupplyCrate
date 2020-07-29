@@ -1,6 +1,8 @@
 package me.mmigas.files;
 
+import me.mmigas.crates.CrateController;
 import me.mmigas.EventSystem;
+import me.mmigas.crates.CrateTier;
 import me.mmigas.items.Enchantments;
 import me.mmigas.items.Potion;
 import me.mmigas.utils.Pair;
@@ -26,15 +28,17 @@ public class ConfigManager {
 
     private final EventSystem plugin;
 
-    public static final String CRATE_REWARDS = "rewards";
-    public static final String CRATE_SPEED = "speed";
-    public static final String CRATE_RADIUS = "radius";
-    public static final String CRATE_COOLDOWN = "cooldown";
-    public static final String CRATE_AUTOSTART = "autostart";
-    public static final String CRATE_WORLDS = "worlds";
+    public static final String CRATE_RADIUS = "Radius";
+    public static final String COOLDOWN = "Cooldown";
+    public static final String AUTOSTART = "Autostart";
+    public static final String WORLDS = "Worlds";
 
+    public static final String CRATE = "Crates";
     private static final String NAME = "Name";
     private static final String PERCENTAGE = "Percentage";
+    public static final String REWARDS = "Rewards";
+    public static final String SPEED = "Speed";
+
     private static final String LORE = "Lore";
     private static final String EFFECTS = "Effects";
     private static final String POTION_DURATION = "Duration";
@@ -48,14 +52,36 @@ public class ConfigManager {
         plugin.saveDefaultConfig();
     }
 
-    public List<Pair<ItemStack, Double>> readRewardsFromConfigs() {
+    public List<CrateTier> readTiersFromConfigs(CrateController crateController) {
+        List<CrateTier> crateTiers = new ArrayList<>();
+        for (String tier : plugin.getConfig().getConfigurationSection(CRATE).getKeys(false)) {
+            ConfigurationSection section = plugin.getConfig().getConfigurationSection(CRATE + "." + tier);
+            if (section != null) {
+
+                String name = section.getString(NAME);
+                Bukkit.getLogger().info(tier);
+                double percentage = section.getDouble(PERCENTAGE);
+                float speed = (float) section.getDouble(SPEED);
+                section = section.getConfigurationSection(REWARDS);
+
+                List<Pair<ItemStack, Double>> rewards = null;
+                if (section != null) {
+                    rewards = readRewardsFromConfigs(section);
+                }
+                crateTiers.add(new CrateTier(crateController, tier, name, percentage, speed, rewards));
+            }
+        }
+        return crateTiers;
+    }
+
+    private List<Pair<ItemStack, Double>> readRewardsFromConfigs(ConfigurationSection section) {
         List<Pair<ItemStack, Double>> rewards = new ArrayList<>();
-        for (String itemName : plugin.getConfig().getConfigurationSection(CRATE_REWARDS).getKeys(false)) {
+        for (String itemName : section.getKeys(false)) {
             Material material = Material.matchMaterial(itemName);
             if (material != null) {
 
                 ItemStack itemStack = new ItemStack(material);
-                Pair<ItemStack, Double> reward = applyAtributes(itemStack, itemName, rewards.isEmpty() ? 0 : rewards.get(rewards.size() - 1).second);
+                Pair<ItemStack, Double> reward = applyAtributes(section, itemStack, itemName, rewards.isEmpty() ? 0 : rewards.get(rewards.size() - 1).second);
                 if (reward != null) {
                     rewards.add(reward);
                 }
@@ -67,9 +93,8 @@ public class ConfigManager {
         return rewards;
     }
 
-    private Pair<ItemStack, Double> applyAtributes(ItemStack item, String itemName, double previousPercentage) {
-        String sectionName = CRATE_REWARDS + "." + itemName;
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection(sectionName);
+    private Pair<ItemStack, Double> applyAtributes(ConfigurationSection section, ItemStack item, String itemName, double previousPercentage) {
+        section = section.getConfigurationSection(itemName);
         double percentage;
 
         percentage = readPercentage(section, itemName, previousPercentage);
@@ -92,15 +117,19 @@ public class ConfigManager {
         if (section.contains(NAME)) {
             String name = section.getString(NAME);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+            if (meta != null && name != null)
+                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
             item.setItemMeta(meta);
         }
     }
 
     private void applyLore(ConfigurationSection section, ItemStack item) {
         if (section.contains(LORE)) {
+            ItemMeta meta = item.getItemMeta();
             List<String> lore = Arrays.asList(section.getString(LORE).split("\n"));
-            item.getItemMeta().setLore(lore);
+            if (meta != null)
+                meta.setLore(lore);
+            item.setItemMeta(meta);
         }
     }
 
@@ -167,7 +196,7 @@ public class ConfigManager {
     }
 
     public List<World> enabledCrateWorlds() {
-        List<String> worldNames = getConfig().getStringList(CRATE_WORLDS);
+        List<String> worldNames = getConfig().getStringList(WORLDS);
         List<World> worlds = new ArrayList<>();
 
         for (String name : worldNames) {
@@ -182,6 +211,8 @@ public class ConfigManager {
     public FileConfiguration getConfig() {
         return plugin.getConfig();
     }
+
+
 }
 
 

@@ -1,28 +1,24 @@
 package me.mmigas;
 
 import me.mmigas.commands.CrateCommand;
+import me.mmigas.crates.CrateController;
 import me.mmigas.files.ConfigManager;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.listeners.CrateInteractListener;
 import me.mmigas.persistence.CratesRepository;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class EventSystem extends JavaPlugin {
 
-    private EventController eventController;
-
-    private final Map<String, Integer> tasks = new HashMap<>();
+    private CrateController crateController;
 
     @Override
     public void onEnable() {
         ConfigManager configManager = new ConfigManager(this);
         new CratesRepository(this);
-        eventController = new EventController(this, configManager);
+        crateController = new CrateController(this, configManager);
         new LanguageManager(this);
         registerCommands();
         registerListener();
@@ -30,30 +26,24 @@ public class EventSystem extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        eventController.stopFallingCrates();
-        for (Map.Entry<String, Integer> entry : tasks.entrySet()) {
-            Bukkit.getScheduler().cancelTask(entry.getValue());
-        }
+        crateController.stopFallingCrates();
+        crateController.stopCrateSpawningTask();
     }
 
     private void registerCommands() {
-        Objects.requireNonNull(getCommand("crate")).setExecutor(new CrateCommand(eventController));
+        Objects.requireNonNull(getCommand("crate")).setExecutor(new CrateCommand(crateController));
     }
 
     private void registerListener() {
         getServer().getPluginManager().registerEvents(new CrateInteractListener(), this);
     }
 
-    boolean isWorldGuardEnabled() {
+    public boolean isWorldGuardEnabled() {
         return getServer().getPluginManager().isPluginEnabled("WorldGuard");
     }
 
-    boolean isGriefPreventionEnabled() {
+    public boolean isGriefPreventionEnabled() {
         return getServer().getPluginManager().isPluginEnabled("GriefPrevention");
-    }
-
-    public Map<String, Integer> getTasks() {
-        return tasks;
     }
 
 }

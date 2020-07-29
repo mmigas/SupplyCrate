@@ -1,13 +1,13 @@
 package me.mmigas.commands;
 
-import me.mmigas.EventController;
+import me.mmigas.crates.CrateController;
 import org.bukkit.command.CommandSender;
 
 public abstract class CMD {
-    public final EventController eventController;
+    public final CrateController crateController;
 
-    public CMD(EventController eventController) {
-        this.eventController = eventController;
+    public CMD(CrateController crateController) {
+        this.crateController = crateController;
     }
 
     public abstract void command(CommandSender sender, String... args);
@@ -17,4 +17,8 @@ public abstract class CMD {
     public abstract String usage();
 
     public abstract String description();
+
+    public String permission() {
+        return CrateCommand.PERMISSION_PREFIX + label();
+    }
 }

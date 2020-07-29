@@ -1,13 +1,11 @@
-package me.mmigas;
+package me.mmigas.crates;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import me.mmigas.events.CrateEvent;
-import me.mmigas.events.Observer;
-import me.mmigas.events.Status;
+import me.mmigas.EventSystem;
 import me.mmigas.files.ConfigManager;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.persistence.CratesRepository;
@@ -18,97 +16,109 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
-public class EventController {
+public class CrateController {
 
     private final EventSystem plugin;
     private final ConfigManager configManager;
     private final CratesRepository cratesRepository;
 
-    public static final String TIMERID = "CrateTimerTask";
-    private final List<Pair<ItemStack, Double>> rewards;
-
     private final Random random;
 
-    private int cratesCounter = 0;
+    private final List<CrateTier> tiers;
 
-    private final List<Observer> events;
+    private int spawnCrateTaskId = -1;
 
-    EventController(EventSystem plugin, ConfigManager configManager) {
+    public CrateController(EventSystem plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
         this.random = new Random();
-        this.events = Collections.synchronizedList(new ArrayList<>());
         this.cratesRepository = CratesRepository.getInstance();
 
-        rewards = configManager.readRewardsFromConfigs();
+        tiers = configManager.readTiersFromConfigs(this);
 
-        if (configManager.getConfig().getBoolean(ConfigManager.CRATE_AUTOSTART)) {
-            plugin.getTasks().put(
-                    EventController.TIMERID,
-                    crateTimer(plugin.getConfig().getInt(ConfigManager.CRATE_COOLDOWN))
-            );
+        if (configManager.getConfig().getBoolean(ConfigManager.AUTOSTART)) {
+            spawnCrateTaskId = startCrateSpawningTask(plugin.getConfig().getInt(ConfigManager.COOLDOWN));
         }
 
         continueCrateEvents();
     }
 
-    public void spawnCrate(Player player) {
+
+    public void spawnCrate(Player player, String name) {
         if (worldGuardTest(player.getLocation().getWorld(), player.getLocation())) {
-            player.sendMessage("World Guard");
+            LanguageManager.sendMessage(player, "&dYou cannot spawn crates in world guard's regions.");
             return;
         }
 
         if (griefPreventionTest(player.getLocation())) {
-            player.sendMessage("GriefPrevention");
+            player.sendMessage("&dYou cannot spawn crates in Grief Prevention's regions.");
             return;
         }
-        startCrateEvent(player.getLocation().add(0, 30, 0), random.nextInt());
+        CrateTier crateTier = getCrateTierByIdentifier(name);
+        startEvent(crateTier, player.getLocation().add(0, 30, 0));
     }
 
-    public int crateTimer(long cooldown) {
-        return Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-            Location location = generateLocation();
-            startCrateEvent(location, random.nextInt());
-        }, cooldown * 1200, cooldown * 1200);
+
+    public int startCrateSpawningTask(long cooldown) {
+        if (spawnCrateTaskId != -1) {
+            return -1;
+        } else {
+            spawnCrateTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+                //TODO: Select a random crate tier and spawn is chest.
+                CrateTier crateTier = tiers.get(0);
+                startEvent(crateTier);
+
+            }, cooldown * 1200, cooldown * 1200);
+            return spawnCrateTaskId;
+        }
     }
 
-    private void startCrateEvent(Location location, int id) {
-        CrateEvent event = new CrateEvent(this, configManager, id);
-        events.add(event);
-        event.startEvent(location);
-        cratesRepository.addCrate(event);
-        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, location);
+    private void startEvent(CrateTier crateTier) {
+        Location location = generateLocation();
+        startEvent(crateTier, location);
+    }
+
+    private void startEvent(CrateTier crateTier, Location location) {
+        int id = random.nextInt();
+        CrateEvent crateEvent = crateTier.startEvent(location, id);
+        cratesRepository.addCrate(crateEvent);
+    }
+
+    public boolean stopCrateSpawningTask() {
+        if (spawnCrateTaskId == -1) {
+            return false;
+        } else {
+            Bukkit.getScheduler().cancelTask(spawnCrateTaskId);
+            spawnCrateTaskId = -1;
+            return true;
+        }
     }
 
     private void continueCrateEvents() {
-        List<Integer> cratesID = CratesRepository.getInstance().getFallingCratesIDs();
-        for (Integer id : cratesID) {
-            startCrateEvent(CratesRepository.getInstance().getCrateLocation(id), id);
+        List<Pair<String, Integer>> cratesID = CratesRepository.getInstance().getFallingCratesIDsAndTiers();
+        for (Pair<String, Integer> pair : cratesID) {
+            for (CrateTier tier : tiers) {
+                if (tier.getIdentifier().equals(pair.first)) {
+                    tier.startEvent(CratesRepository.getInstance().getCrateLocation(pair.second), pair.second);
+                }
+            }
         }
     }
 
     public void stopFallingCrates() {
-        List<Observer> toRemove = new ArrayList<>();
-        for (Observer observer : events) {
-            if (observer.getStatus() == Status.FALLING) {
-                updateCrateInRepository((CrateEvent) observer);
-                observer.stopCrateFall();
-                toRemove.add(observer);
-            }
+        for (CrateTier crateTier : tiers) {
+            crateTier.stopFallingCrates();
         }
-        events.removeAll(toRemove);
     }
 
-    public void finishEvent(CrateEvent crateEvent) {
-        updateCrateInRepository(crateEvent);
-        events.remove(crateEvent);
+    void addCrateToRepository(CrateEvent crateEvent) {
+        cratesRepository.addCrate(crateEvent);
     }
 
-    private void updateCrateInRepository(CrateEvent crateEvent) {
+    void updateCrateToRepository(CrateEvent crateEvent) {
         cratesRepository.updateCrate(crateEvent);
     }
 
@@ -116,12 +126,10 @@ public class EventController {
         List<World> worlds = configManager.enabledCrateWorlds();
         World world;
         if (worlds.isEmpty()) {
-            world = Bukkit.getWorlds().get(cratesCounter);
+            world = Bukkit.getWorlds().get(0);
         } else {
-            world = worlds.get(cratesCounter % worlds.size());
+            world = worlds.get(random.nextInt(worlds.size()));
         }
-
-        cratesCounter++;
 
         int spawnX = world.getSpawnLocation().getBlockX();
         int spawnZ = world.getSpawnLocation().getBlockZ();
@@ -139,7 +147,7 @@ public class EventController {
         return location;
     }
 
-    private boolean worldGuardTest(World world, Location location) {
+    public boolean worldGuardTest(World world, Location location) {
         if (!plugin.isWorldGuardEnabled()) {
             return false;
         }
@@ -162,7 +170,7 @@ public class EventController {
         return false;
     }
 
-    private boolean griefPreventionTest(Location location) {
+    public boolean griefPreventionTest(Location location) {
         if (!plugin.isGriefPreventionEnabled()) {
             return false;
         }
@@ -176,17 +184,32 @@ public class EventController {
         return false;
     }
 
-    private boolean isInside(Location maxPosition, Location minPosistion, Location location) {
+    public boolean isInside(Location maxPosition, Location minPosistion, Location location) {
         return maxPosition.getBlockX() >= location.getBlockX() && minPosistion.getBlockX() <= location.getBlockX() &&
                 maxPosition.getBlockZ() >= location.getBlockZ() && minPosistion.getBlockZ() <= location.getBlockZ();
     }
 
-    public EventSystem getPlugin() {
+    private CrateTier getCrateTierByIdentifier(String identifier) {
+        for (CrateTier crateTier : tiers) {
+            if (crateTier.getIdentifier().equalsIgnoreCase(identifier)) {
+                return crateTier;
+            }
+        }
+        return null;
+    }
+
+
+    EventSystem getPlugin() {
         return plugin;
     }
 
-    public List<Pair<ItemStack, Double>> getRewards() {
-        return rewards;
+    CratesRepository cratesRepository() {
+        return cratesRepository;
+    }
+
+
+    public int getSpawCrateTaskId() {
+        return spawnCrateTaskId;
     }
 
 }

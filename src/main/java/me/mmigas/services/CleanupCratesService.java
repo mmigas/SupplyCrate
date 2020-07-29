@@ -1,7 +1,7 @@
 package me.mmigas.services;
 
-import me.mmigas.events.CrateEvent;
-import me.mmigas.events.Status;
+import me.mmigas.crates.CrateEvent;
+import me.mmigas.crates.Status;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.persistence.CratesRepository;
 import org.bukkit.Bukkit;
@@ -41,7 +41,7 @@ public class CleanupCratesService {
             }
 
             if (destroyBlock(section, sender, stringDate)) {
-                cratesRepository.removeCrate(key);
+                cratesRepository.removeCrate(CratesRepository.CRATE + "." + key);
 
                 counter++;
             }

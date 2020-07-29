@@ -5,8 +5,8 @@ import me.mmigas.commands.CMD;
 import me.mmigas.files.LanguageManager;
 import org.bukkit.command.CommandSender;
 
-public class StartCrate extends CMD {
-    public StartCrate(CrateController crateController) {
+public class Timer extends CMD {
+    public Timer(CrateController crateController) {
         super(crateController);
     }
 
@@ -14,11 +14,8 @@ public class StartCrate extends CMD {
     public void command(CommandSender sender, String... args) {
         try {
             int cooldown = Integer.parseInt(args[1]);
-            if (crateController.startCrateSpawningTask(cooldown) == -1) {
-                LanguageManager.sendKey(sender, LanguageManager.CRATE_CICLE_RUNNING);
-            } else {
-                LanguageManager.sendKey(sender, LanguageManager.CRATE_START);
-            }
+            crateController.stopCrateSpawningTask();
+            crateController.startCrateSpawningTask(cooldown);
         } catch (NumberFormatException e) {
             LanguageManager.sendMessage(sender, "&dCooldown time invalid. Please specify a positive number.");
         }
@@ -26,18 +23,16 @@ public class StartCrate extends CMD {
 
     @Override
     public String label() {
-        return "start";
+        return "timer";
     }
 
     @Override
     public String usage() {
-        return "/crate start";
+        return "/crate timer {delay}";
     }
 
     @Override
     public String description() {
-        return "Starts the automatic spawning of the crates.";
+        return "Changes the delay of the automatic crate spawning in minutes.";
     }
-
-
 }

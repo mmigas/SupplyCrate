@@ -1,7 +1,5 @@
-package me.mmigas.events;
+package me.mmigas.crates;
 
-import me.mmigas.EventController;
-import me.mmigas.files.ConfigManager;
 import me.mmigas.utils.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -30,30 +28,28 @@ public class CrateEvent implements Observer {
     private Location location;
     private LocalDateTime landingTime;
     private final int id;
-    private final float speed;
 
     private int taskID;
 
-    private final EventController controller;
+    private final CrateTier crateTier;
+    private List<Pair<ItemStack, Double>> tierRewards;
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss_dd-MM-yyyy");
     private static final Random RANDOM = new Random();
 
-    public CrateEvent(EventController controller, ConfigManager manager, int id) {
-        this.controller = controller;
-
-        speed = (float) manager.getConfig().getDouble(ConfigManager.CRATE_SPEED);
+    public CrateEvent(CrateTier crateTier, int id) {
+        this.crateTier = crateTier;
         this.id = id;
     }
 
-    public void startEvent(Location location) {
+    public void startEvent(Location location, float speed, List<Pair<ItemStack, Double>> tierRewards) {
         location.getWorld().loadChunk(location.getBlockX() >> 4, location.getBlockZ() >> 4, true);
         location.getWorld().setChunkForceLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4, true);
         this.location = location;
 
         armorStandSetup(location);
 
-        taskID = startCrateFall(speed);
+        taskID = startCrateFall(speed, tierRewards);
 
         status = Status.FALLING;
     }
@@ -66,14 +62,15 @@ public class CrateEvent implements Observer {
         stand.setCollidable(false);
         stand.setInvulnerable(true);
         stand.setMarker(true);
-        stand.setMetadata(CRATE_METADATA, new FixedMetadataValue(controller.getPlugin(), CRATE_METADATA));
+        stand.setMetadata(CRATE_METADATA, new FixedMetadataValue(crateTier.getCrateController().getPlugin(), CRATE_METADATA));
     }
 
-    private int startCrateFall(float speed) {
-        return Bukkit.getScheduler().scheduleSyncRepeatingTask(controller.getPlugin(), () -> {
+    private int startCrateFall(float speed, List<Pair<ItemStack, Double>> tierRewards) {
+        return Bukkit.getScheduler().scheduleSyncRepeatingTask(crateTier.getCrateController().getPlugin(), () -> {
             stand.teleport(stand.getLocation().subtract(0, speed, 0));
 
             if (isOnGround(stand.getLocation(), stand.getWorld())) {
+                this.tierRewards = tierRewards;
                 fallIsOver(stand);
             }
         }, 0L, 1L);
@@ -85,7 +82,7 @@ public class CrateEvent implements Observer {
         spawnCrateChest(stand);
         stand.getLocation().getWorld().unloadChunk(stand.getLocation().getChunk());
         stand.getLocation().getWorld().setChunkForceLoaded(stand.getLocation().getBlockX() >> 4, stand.getLocation().getBlockZ() >> 4, false);
-        controller.finishEvent(this);
+        crateTier.finishEvent(this);
     }
 
     @Override
@@ -99,7 +96,7 @@ public class CrateEvent implements Observer {
         block.setType(Material.CHEST);
 
         Chest chest = (Chest) block.getState();
-        chest.setMetadata(CRATE_METADATA, new FixedMetadataValue(controller.getPlugin(), CRATE_METADATA));
+        chest.setMetadata(CRATE_METADATA, new FixedMetadataValue(crateTier.getCrateController().getPlugin(), CRATE_METADATA));
         chest.setCustomName(CRATE_NAME + id);
         chest.update();
 
@@ -114,15 +111,14 @@ public class CrateEvent implements Observer {
     }
 
     private List<ItemStack> generateMaterials() {
-        List<Pair<ItemStack, Double>> possibleRewards = controller.getRewards();
         List<ItemStack> rewards = new ArrayList<>();
         int rewardsNumber = RANDOM.nextInt(3) + 1;
 
         nextreward:
         for (int i = 0; i < rewardsNumber; i++) {
-            double probabilityGenerated = RANDOM.nextDouble() * (possibleRewards.get(
-                    possibleRewards.size() - 1).second);
-            for (Pair<ItemStack, Double> pair : possibleRewards) {
+            double probabilityGenerated = RANDOM.nextDouble() * (tierRewards.get(
+                    tierRewards.size() - 1).second);
+            for (Pair<ItemStack, Double> pair : tierRewards) {
                 if (probabilityGenerated < pair.second) {
                     rewards.add(pair.first);
                     continue nextreward;
@@ -134,6 +130,10 @@ public class CrateEvent implements Observer {
 
     private boolean isOnGround(Location location, World world) {
         return world.getBlockAt(location.subtract(0, 1, 0)).getType() != Material.AIR;
+    }
+
+    public CrateTier getCrateTier() {
+        return crateTier;
     }
 
     public Status getStatus() {
