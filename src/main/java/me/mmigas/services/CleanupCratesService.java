@@ -46,7 +46,7 @@ public class CleanupCratesService {
                 counter++;
             }
         }
-        LanguageManager.sendMessage(sender, counter + " removed succefully ");
+        LanguageManager.sendMessage(sender, counter + " removed successfully ");
     }
 
     private static boolean destroyBlock(ConfigurationSection configuration, CommandSender sender, String stringDate) {

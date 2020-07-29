@@ -15,7 +15,7 @@ public class StopCrate extends CMD {
         if (crateController.stopCrateSpawningTask()) {
             LanguageManager.sendKey(sender, LanguageManager.CRATE_STOP);
         } else {
-            LanguageManager.sendKey(sender, LanguageManager.CRATE_CICLE_NOT_RUNNING);
+            LanguageManager.sendKey(sender, LanguageManager.CRATE_CYCLE_NOT_RUNNING);
         }
     }
 

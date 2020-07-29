@@ -41,3 +41,15 @@ Crates:
           Poison:
             Duration: 10
             Multiplier: 10
+  Epic:
+    Name: "EPIC"
+    Percentage: 10
+    Speed: 0.1
+    Rewards:
+      Diamond_Chestplate:
+        Name: "ARMOR"
+        Lore: "THIS IS A FUCKING TNT"
+        Percentage: 50
+        Enchantments:
+          Protection: 1
+          Unbreaking: 2

@@ -30,6 +30,9 @@ public class CrateController {
     private final List<CrateTier> tiers;
 
     private int spawnCrateTaskId = -1;
+    private long cooldown;
+    private final int totalTiersPercentage;
+
 
     public CrateController(EventSystem plugin, ConfigManager configManager) {
         this.plugin = plugin;
@@ -40,8 +43,11 @@ public class CrateController {
         tiers = configManager.readTiersFromConfigs(this);
 
         if (configManager.getConfig().getBoolean(ConfigManager.AUTOSTART)) {
-            spawnCrateTaskId = startCrateSpawningTask(plugin.getConfig().getInt(ConfigManager.COOLDOWN));
+            cooldown = plugin.getConfig().getInt(ConfigManager.COOLDOWN);
+            spawnCrateTaskId = startCrateSpawningTask();
         }
+
+        totalTiersPercentage = tiers.get(tiers.size() - 1).getPercentage();
 
         continueCrateEvents();
     }
@@ -49,31 +55,43 @@ public class CrateController {
 
     public void spawnCrate(Player player, String name) {
         if (worldGuardTest(player.getLocation().getWorld(), player.getLocation())) {
-            LanguageManager.sendMessage(player, "&dYou cannot spawn crates in world guard's regions.");
+            LanguageManager.sendKey(player, LanguageManager.WORLD_GUARD_REGION);
             return;
         }
 
         if (griefPreventionTest(player.getLocation())) {
-            player.sendMessage("&dYou cannot spawn crates in Grief Prevention's regions.");
+            LanguageManager.sendKey(player, LanguageManager.GRIEF_PREVENTION_REGION);
             return;
         }
         CrateTier crateTier = getCrateTierByIdentifier(name);
-        startEvent(crateTier, player.getLocation().add(0, 30, 0));
+        if (crateTier == null) {
+            LanguageManager.sendKey(player, LanguageManager.INVALID_CRATE_TIER, name);
+        } else {
+            startEvent(crateTier, player.getLocation().add(0, 30, 0));
+        }
     }
 
 
-    public int startCrateSpawningTask(long cooldown) {
+    public int startCrateSpawningTask() {
         if (spawnCrateTaskId != -1) {
             return -1;
         } else {
-            spawnCrateTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-                //TODO: Select a random crate tier and spawn is chest.
-                CrateTier crateTier = tiers.get(0);
-                startEvent(crateTier);
-
-            }, cooldown * 1200, cooldown * 1200);
+            spawnCrateTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () ->
+                    startEvent(selectRandomCrateTier()), cooldown * 1200, cooldown * 1200);
             return spawnCrateTaskId;
         }
+    }
+
+    private CrateTier selectRandomCrateTier() {
+        int percentage = random.nextInt(totalTiersPercentage);
+        CrateTier crateTier = null;
+        for (CrateTier tier : tiers) {
+            if (percentage < tier.getPercentage()) {
+                crateTier = tier;
+                break;
+            }
+        }
+        return crateTier;
     }
 
     private void startEvent(CrateTier crateTier) {
@@ -184,9 +202,9 @@ public class CrateController {
         return false;
     }
 
-    public boolean isInside(Location maxPosition, Location minPosistion, Location location) {
-        return maxPosition.getBlockX() >= location.getBlockX() && minPosistion.getBlockX() <= location.getBlockX() &&
-                maxPosition.getBlockZ() >= location.getBlockZ() && minPosistion.getBlockZ() <= location.getBlockZ();
+    public boolean isInside(Location maxPosition, Location minPosition, Location location) {
+        return maxPosition.getBlockX() >= location.getBlockX() && minPosition.getBlockX() <= location.getBlockX() &&
+                maxPosition.getBlockZ() >= location.getBlockZ() && minPosition.getBlockZ() <= location.getBlockZ();
     }
 
     private CrateTier getCrateTierByIdentifier(String identifier) {
@@ -198,18 +216,13 @@ public class CrateController {
         return null;
     }
 
+    public void changeCooldown(long cooldown) {
+        stopCrateSpawningTask();
+        this.cooldown = cooldown;
+        startCrateSpawningTask();
+    }
 
     EventSystem getPlugin() {
         return plugin;
     }
-
-    CratesRepository cratesRepository() {
-        return cratesRepository;
-    }
-
-
-    public int getSpawCrateTaskId() {
-        return spawnCrateTaskId;
-    }
-
 }

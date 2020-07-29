@@ -13,9 +13,8 @@ public class StartCrate extends CMD {
     @Override
     public void command(CommandSender sender, String... args) {
         try {
-            int cooldown = Integer.parseInt(args[1]);
-            if (crateController.startCrateSpawningTask(cooldown) == -1) {
-                LanguageManager.sendKey(sender, LanguageManager.CRATE_CICLE_RUNNING);
+            if (crateController.startCrateSpawningTask() == -1) {
+                LanguageManager.sendKey(sender, LanguageManager.CRATE_CYCLE_RUNNING);
             } else {
                 LanguageManager.sendKey(sender, LanguageManager.CRATE_START);
             }

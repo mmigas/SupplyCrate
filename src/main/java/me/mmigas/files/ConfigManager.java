@@ -54,13 +54,15 @@ public class ConfigManager {
 
     public List<CrateTier> readTiersFromConfigs(CrateController crateController) {
         List<CrateTier> crateTiers = new ArrayList<>();
+        int prevPercentage = 0;
         for (String tier : plugin.getConfig().getConfigurationSection(CRATE).getKeys(false)) {
             ConfigurationSection section = plugin.getConfig().getConfigurationSection(CRATE + "." + tier);
             if (section != null) {
 
                 String name = section.getString(NAME);
                 Bukkit.getLogger().info(tier);
-                double percentage = section.getDouble(PERCENTAGE);
+                int percentage = section.getInt(PERCENTAGE) + prevPercentage;
+                prevPercentage = percentage;
                 float speed = (float) section.getDouble(SPEED);
                 section = section.getConfigurationSection(REWARDS);
 
@@ -81,7 +83,7 @@ public class ConfigManager {
             if (material != null) {
 
                 ItemStack itemStack = new ItemStack(material);
-                Pair<ItemStack, Double> reward = applyAtributes(section, itemStack, itemName, rewards.isEmpty() ? 0 : rewards.get(rewards.size() - 1).second);
+                Pair<ItemStack, Double> reward = applyAttributes(section, itemStack, itemName, rewards.isEmpty() ? 0 : rewards.get(rewards.size() - 1).second);
                 if (reward != null) {
                     rewards.add(reward);
                 }
@@ -93,7 +95,7 @@ public class ConfigManager {
         return rewards;
     }
 
-    private Pair<ItemStack, Double> applyAtributes(ConfigurationSection section, ItemStack item, String itemName, double previousPercentage) {
+    private Pair<ItemStack, Double> applyAttributes(ConfigurationSection section, ItemStack item, String itemName, double previousPercentage) {
         section = section.getConfigurationSection(itemName);
         double percentage;
 

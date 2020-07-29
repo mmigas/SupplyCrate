@@ -24,17 +24,22 @@ public class LanguageManager {
     private static final String CRATE_CATEGORY = "crate.";
     public static final String CRATE_START = CRATE_CATEGORY + "start";
     public static final String CRATE_STOP = CRATE_CATEGORY + "stop";
-    public static final String CRATE_CICLE_RUNNING = CRATE_CATEGORY + "crate-cicle-running";
-    public static final String CRATE_CICLE_NOT_RUNNING = CRATE_CATEGORY + "no-crate-cicle";
+    public static final String CRATE_CYCLE_RUNNING = CRATE_CATEGORY + "crate-cycle-running";
+    public static final String CRATE_CYCLE_NOT_RUNNING = CRATE_CATEGORY + "no-crate-cycle";
     public static final String CRATE_BROADCAST = CRATE_CATEGORY + "broadcast";
     public static final String CRATE_COLLECTED = CRATE_CATEGORY + "collected";
     public static final String CRATE_CANNOT_BREAK = CRATE_CATEGORY + "cannot-break";
-    public static final String NO_PERMISSION = "&cNot enought permission!";
+    public static final String NO_PERMISSION = "&cNot enough permission!";
     public static final String MUST_BE_PLAYER = "&cYou must be a player!";
+
+    public static final String WORLD_GUARD_REGION = CRATE_CATEGORY + "world_guard_region";
+    public static final String GRIEF_PREVENTION_REGION = CRATE_CATEGORY + "grief_prevention_region";
+    public static final String INVALID_CRATE_TIER = CRATE_CATEGORY + "invalid_crate_tier";
 
     private static final String LOCATION_PLACEHOLDER = "%CrateLocation%";
     private static final String PLAYER_PLACEHOLDER = "%Player%";
     private static final String DELAY_PLACEHOLDER = "%Delay%";
+    private static final String CRATE_TIER_PLACEHOLDER = "%CrateTier%";
 
     private static final String FILE = "language.yml";
 
@@ -90,21 +95,26 @@ public class LanguageManager {
 
     private FileConfiguration createFileConfigurator() {
         FileConfiguration fileConfiguration = new YamlConfiguration();
-        fileConfiguration.addDefault(CRATE_START, "&bCrate events cicle started.");
-        fileConfiguration.addDefault(CRATE_STOP, "&bCrate events cicle stoped.");
-        fileConfiguration.addDefault(CRATE_CICLE_NOT_RUNNING, "&bThe crate event is not running.");
-        fileConfiguration.addDefault(CRATE_CICLE_RUNNING, "&bThe crate event is already running.");
-        fileConfiguration.addDefault(CRATE_BROADCAST, "&bCrate spawned at " + LOCATION_PLACEHOLDER);
+        fileConfiguration.addDefault(CRATE_START, "&bCrate events cycle started.");
+        fileConfiguration.addDefault(CRATE_STOP, "&bCrate events cycle stopped.");
+        fileConfiguration.addDefault(CRATE_CYCLE_NOT_RUNNING, "&bThe crate event is not running.");
+        fileConfiguration.addDefault(CRATE_CYCLE_RUNNING, "&bThe crate event is already running.");
+        fileConfiguration.addDefault(CRATE_BROADCAST, "&b" + CRATE_TIER_PLACEHOLDER + " Crate spawned at " + LOCATION_PLACEHOLDER);
         fileConfiguration.addDefault(CRATE_COLLECTED, "&bCrate collected by &a" + PLAYER_PLACEHOLDER);
         fileConfiguration.addDefault(CRATE_CANNOT_BREAK, "&bYou cannot break this crate.");
+
+        fileConfiguration.addDefault(WORLD_GUARD_REGION, "&dYou cannot spawn crates in world guard's regions.");
+        fileConfiguration.addDefault(GRIEF_PREVENTION_REGION, "&dYou cannot spawn crates in Grief Prevention's regions.");
+        fileConfiguration.addDefault(INVALID_CRATE_TIER, "&dInvalid crate tier." + CRATE_TIER_PLACEHOLDER);
+
         fileConfiguration.options().copyDefaults(false);
         return fileConfiguration;
     }
 
-    public static void broadcast(String message, Object... objects) {
+    public static void broadcast(String key, Object... objects) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-            LanguageManager.sendKey(player, message, objects);
+            LanguageManager.sendKey(player, key, objects);
         }
     }
 
@@ -133,6 +143,11 @@ public class LanguageManager {
         if (message.contains(DELAY_PLACEHOLDER)) {
             long storedTime = findStoredTimeInObjects(objects);
             message = message.replace(DELAY_PLACEHOLDER, String.valueOf(((plugin.getConfig().getInt("Delay") * 1000) - (System.currentTimeMillis() - storedTime)) / 1000));
+        }
+
+        if (message.contains(CRATE_TIER_PLACEHOLDER)) {
+            String tier = findCrateTierInObjects(objects);
+            message = message.replace(INVALID_CRATE_TIER, tier);
         }
 
         return message;
@@ -164,6 +179,14 @@ public class LanguageManager {
             }
         }
         throw new IllegalStateException();
+    }
 
+    private String findCrateTierInObjects(Object... objects) {
+        for (Object object : objects) {
+            if (object instanceof String) {
+                return (String) object;
+            }
+        }
+        throw new IllegalStateException();
     }
 }

@@ -13,12 +13,12 @@ public class CrateTier {
     private final String identifier;
     private final String name;
     private final float speed;
-    private final double percentage;
+    private final int percentage;
     private final List<Pair<ItemStack, Double>> rewards;
 
     private final List<CrateEvent> events;
 
-    public CrateTier(CrateController crateController, String identifier, String name, double percentage, float speed, List<Pair<ItemStack, Double>> rewards) {
+    public CrateTier(CrateController crateController, String identifier, String name, int percentage, float speed, List<Pair<ItemStack, Double>> rewards) {
         this.crateController = crateController;
         this.identifier = identifier;
         this.name = name;
@@ -45,7 +45,7 @@ public class CrateTier {
                 toRemove.add(crateEvent);
             }
         }
-        events.remove(toRemove);
+        events.removeAll(toRemove);
     }
 
     void finishEvent(CrateEvent crateEvent) {
@@ -65,7 +65,7 @@ public class CrateTier {
         return name;
     }
 
-    double getPercentage() {
+    int getPercentage() {
         return percentage;
     }
 }
