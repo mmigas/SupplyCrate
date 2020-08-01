@@ -32,7 +32,7 @@ public class CrateTier {
         CrateEvent crateEvent = new CrateEvent(this, id);
         crateEvent.startEvent(location, speed, rewards);
         events.add(crateEvent);
-        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, location);
+        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, crateEvent);
         return crateEvent;
     }
 
@@ -65,7 +65,11 @@ public class CrateTier {
         return name;
     }
 
-    int getPercentage() {
+    public List<Pair<ItemStack, Double>> getRewards() {
+        return rewards;
+    }
+
+    public int getPercentage() {
         return percentage;
     }
 }

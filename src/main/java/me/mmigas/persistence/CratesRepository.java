@@ -1,6 +1,6 @@
 package me.mmigas.persistence;
 
-import me.mmigas.EventSystem;
+import me.mmigas.SupplyCrate;
 import me.mmigas.crates.CrateEvent;
 import me.mmigas.crates.Status;
 import me.mmigas.utils.Pair;
@@ -20,7 +20,7 @@ import java.util.Objects;
 
 public class CratesRepository {
 
-    private final EventSystem plugin;
+    private final SupplyCrate plugin;
     private final FileConfiguration fileConfiguration;
 
     private static CratesRepository instance;
@@ -38,7 +38,7 @@ public class CratesRepository {
     private static final String STORAGE_FILE_DIRECTORY = "storage";
     private static final String STORAGE_FILE_NAME = "Crates.yml";
 
-    public CratesRepository(EventSystem plugin) {
+    public CratesRepository(SupplyCrate plugin) {
         this.plugin = plugin;
         this.fileConfiguration = loadCrateFile(getFile());
 
@@ -69,7 +69,6 @@ public class CratesRepository {
     public void updateCrate(CrateEvent crate) {
         String id = keyFromId(crate.getId());
         if (!fileConfiguration.isConfigurationSection(id)) {
-            Bukkit.getLogger().info("Crate not found!");
             return;
         }
         Location location = crate.getCurrentLocation();
@@ -90,7 +89,6 @@ public class CratesRepository {
     }
 
     public void removeCrate(String crateId) {
-        Bukkit.getLogger().info(crateId);
         fileConfiguration.set(crateId, null);
         save();
     }

@@ -1,9 +1,9 @@
 package me.mmigas.files;
 
-import me.mmigas.EventSystem;
+import me.mmigas.SupplyCrate;
+import me.mmigas.crates.CrateEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -32,24 +32,26 @@ public class LanguageManager {
     public static final String NO_PERMISSION = "&cNot enough permission!";
     public static final String MUST_BE_PLAYER = "&cYou must be a player!";
 
+    public static final String TIMER_COMMAND_SUCCESSFULLY = CRATE_CATEGORY + "timer_command_successfully";
+
     public static final String WORLD_GUARD_REGION = CRATE_CATEGORY + "world_guard_region";
     public static final String GRIEF_PREVENTION_REGION = CRATE_CATEGORY + "grief_prevention_region";
     public static final String INVALID_CRATE_TIER = CRATE_CATEGORY + "invalid_crate_tier";
 
     private static final String LOCATION_PLACEHOLDER = "%CrateLocation%";
+    private static final String CRATE_TIER_PLACEHOLDER = "%CrateTier%";
     private static final String PLAYER_PLACEHOLDER = "%Player%";
     private static final String DELAY_PLACEHOLDER = "%Delay%";
-    private static final String CRATE_TIER_PLACEHOLDER = "%CrateTier%";
 
     private static final String FILE = "language.yml";
 
-    private final EventSystem plugin;
+    private final SupplyCrate plugin;
 
     private final Map<String, String> strings;
 
     private static LanguageManager instance;
 
-    public LanguageManager(EventSystem plugin) {
+    public LanguageManager(SupplyCrate plugin) {
         this.plugin = plugin;
         FileConfiguration fileConfiguration = createFileConfigurator();
         strings = new HashMap<>();
@@ -103,9 +105,11 @@ public class LanguageManager {
         fileConfiguration.addDefault(CRATE_COLLECTED, "&bCrate collected by &a" + PLAYER_PLACEHOLDER);
         fileConfiguration.addDefault(CRATE_CANNOT_BREAK, "&bYou cannot break this crate.");
 
+        fileConfiguration.addDefault(TIMER_COMMAND_SUCCESSFULLY, "%bCooldown changed to " + DELAY_PLACEHOLDER + " minutes.");
+
         fileConfiguration.addDefault(WORLD_GUARD_REGION, "&dYou cannot spawn crates in world guard's regions.");
         fileConfiguration.addDefault(GRIEF_PREVENTION_REGION, "&dYou cannot spawn crates in Grief Prevention's regions.");
-        fileConfiguration.addDefault(INVALID_CRATE_TIER, "&dInvalid crate tier." + CRATE_TIER_PLACEHOLDER);
+        fileConfiguration.addDefault(INVALID_CRATE_TIER, "&dInvalid crate tier.");
 
         fileConfiguration.options().copyDefaults(false);
         return fileConfiguration;
@@ -124,15 +128,23 @@ public class LanguageManager {
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 
+
     public static void sendMessage(CommandSender sender, String message, Object... objects) {
         message = instance.updatePlaceholders(message, objects);
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 
     private String updatePlaceholders(String message, Object... objects) {
-        if (message.contains(LOCATION_PLACEHOLDER)) {
-            Location location = findLocationInObjects(objects);
-            message = message.replace(LOCATION_PLACEHOLDER, "&bx: &c" + location.getBlockX() + " &bz: &c" + location.getBlockZ());
+        CrateEvent crate = findCrateInObjects(objects);
+        if (crate != null) {
+            if (message.contains(LOCATION_PLACEHOLDER)) {
+                message = message.replace(LOCATION_PLACEHOLDER, "&bx: &c" + crate.getCurrentLocation().getBlockX() + " &bz: &c"
+                        + crate.getCurrentLocation().getBlockZ());
+            }
+
+            if (message.contains(CRATE_TIER_PLACEHOLDER)) {
+                message = message.replace(LOCATION_PLACEHOLDER, crate.getCrateTier().getName());
+            }
         }
 
         if (message.contains(PLAYER_PLACEHOLDER)) {
@@ -145,21 +157,16 @@ public class LanguageManager {
             message = message.replace(DELAY_PLACEHOLDER, String.valueOf(((plugin.getConfig().getInt("Delay") * 1000) - (System.currentTimeMillis() - storedTime)) / 1000));
         }
 
-        if (message.contains(CRATE_TIER_PLACEHOLDER)) {
-            String tier = findCrateTierInObjects(objects);
-            message = message.replace(INVALID_CRATE_TIER, tier);
-        }
-
         return message;
     }
 
-    private Location findLocationInObjects(Object... objects) {
+    private CrateEvent findCrateInObjects(Object... objects) {
         for (Object object : objects) {
-            if (object instanceof Location) {
-                return (Location) object;
+            if (object instanceof CrateEvent) {
+                return (CrateEvent) object;
             }
         }
-        throw new IllegalStateException();
+        return null;
     }
 
     private Player findPlayerInObjects(Object... objects) {
@@ -169,7 +176,6 @@ public class LanguageManager {
             }
         }
         throw new IllegalStateException();
-
     }
 
     private Long findStoredTimeInObjects(Object... objects) {
@@ -181,12 +187,4 @@ public class LanguageManager {
         throw new IllegalStateException();
     }
 
-    private String findCrateTierInObjects(Object... objects) {
-        for (Object object : objects) {
-            if (object instanceof String) {
-                return (String) object;
-            }
-        }
-        throw new IllegalStateException();
-    }
 }

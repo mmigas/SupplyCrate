@@ -6,16 +6,24 @@ import me.mmigas.files.ConfigManager;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.listeners.CrateInteractListener;
 import me.mmigas.persistence.CratesRepository;
+import net.milkbowl.vault.economy.Economy;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
+import java.util.logging.Level;
 
-public class EventSystem extends JavaPlugin {
+public class SupplyCrate extends JavaPlugin {
 
     private CrateController crateController;
+    private Economy economy = null;
 
     @Override
     public void onEnable() {
+        if (!setupEconomy()) {
+            Bukkit.getLogger().log(Level.WARNING, (String.format("[%s] - Vault not found. You won't have access to the buy command.", getDescription().getName())));
+        }
         ConfigManager configManager = new ConfigManager(this);
         new CratesRepository(this);
         crateController = new CrateController(this, configManager);
@@ -46,4 +54,19 @@ public class EventSystem extends JavaPlugin {
         return getServer().getPluginManager().isPluginEnabled("GriefPrevention");
     }
 
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return economy != null;
+    }
+
+    public Economy getEconomy() {
+        return economy;
+    }
 }

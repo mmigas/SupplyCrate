@@ -1,9 +1,9 @@
-main: me.mmigas.EventSystem
-name: EventSystem
+main: me.mmigas.SupplyCrate
+name: SupplyCrate
 description: A simple event plugin
 api-version: 1.16
 version: 1.0
-softdepend: [WorldGuard, WorldEdit, GriefPrevention]
+softdepend: [WorldGuard, WorldEdit, GriefPrevention, PlaceholderAPI]
 
 commands:
   crate:

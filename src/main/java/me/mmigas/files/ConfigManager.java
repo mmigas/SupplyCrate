@@ -1,7 +1,7 @@
 package me.mmigas.files;
 
 import me.mmigas.crates.CrateController;
-import me.mmigas.EventSystem;
+import me.mmigas.SupplyCrate;
 import me.mmigas.crates.CrateTier;
 import me.mmigas.items.Enchantments;
 import me.mmigas.items.Potion;
@@ -26,7 +26,7 @@ import java.util.logging.Level;
 
 public class ConfigManager {
 
-    private final EventSystem plugin;
+    private final SupplyCrate plugin;
 
     public static final String CRATE_RADIUS = "Radius";
     public static final String COOLDOWN = "Cooldown";
@@ -46,7 +46,7 @@ public class ConfigManager {
     private static final String ENCHANTMENTS = "Enchantments";
 
 
-    public ConfigManager(EventSystem plugin) {
+    public ConfigManager(SupplyCrate plugin) {
         this.plugin = plugin;
         plugin.getConfig().options().copyDefaults(true);
         plugin.saveDefaultConfig();

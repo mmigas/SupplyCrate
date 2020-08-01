@@ -3,6 +3,7 @@ package me.mmigas.items;
 import org.bukkit.potion.PotionEffectType;
 
 import static me.mmigas.utils.Comparisons.equalsOne;
+import static me.mmigas.utils.Comparisons.startsAndEnds;
 
 public class Potion {
 
@@ -20,11 +21,11 @@ public class Potion {
             return PotionEffectType.FAST_DIGGING;
         } else if (equalsOne(name, "slow_diggin")) {
             return PotionEffectType.SLOW_DIGGING;
-        } else if (equalsOne(name, "strength", "damage", "increase_damage")) {
+        } else if (equalsOne(name, "strength", "damage") || startsAndEnds(name, "increase", "damage")) {
             return PotionEffectType.INCREASE_DAMAGE;
-        } else if (equalsOne(name, "heal", "instant_heal", "healing", "instant_healing")) {
+        } else if (equalsOne(name, "heal", "healing") || startsAndEnds(name, "instant", "healing") || startsAndEnds(name, "instant", "heal")) {
             return PotionEffectType.HEAL;
-        } else if (equalsOne(name, "harm", "harming", "instant_damage")) {
+        } else if (equalsOne(name, "harm", "harming") || startsAndEnds(name, "instant", "damage")) {
             return PotionEffectType.HARM;
         } else if (equalsOne(name, "leaping", "jump")) {
             return PotionEffectType.JUMP;
@@ -32,17 +33,17 @@ public class Potion {
             return PotionEffectType.CONFUSION;
         } else if (equalsOne(name, "regen", "regeneration")) {
             return PotionEffectType.REGENERATION;
-        } else if (equalsOne(name, "resistance", "damage_resistance")) {
+        } else if (equalsOne(name, "resistance") || startsAndEnds(name, "damage", "resistance")) {
             return PotionEffectType.DAMAGE_RESISTANCE;
-        } else if (equalsOne(name, "fire_resistance", "fire")) {
+        } else if (equalsOne(name, "fire") || startsAndEnds(name, "fire", "resistance")) {
             return PotionEffectType.FIRE_RESISTANCE;
-        } else if (equalsOne(name, "water_breathing", "breathing")) {
+        } else if (equalsOne(name, "breathing") || startsAndEnds(name, "water", "breathing")) {
             return PotionEffectType.WATER_BREATHING;
         } else if (equalsOne(name, "invisibility")) {
             return PotionEffectType.INVISIBILITY;
         } else if (equalsOne(name, "blindness")) {
             return PotionEffectType.BLINDNESS;
-        } else if (equalsOne(name, "night_vision")) {
+        } else if (startsAndEnds(name, "night", "vision")) {
             return PotionEffectType.NIGHT_VISION;
         } else if (equalsOne(name, "hunger")) {
             return PotionEffectType.HUNGER;
@@ -52,7 +53,7 @@ public class Potion {
             return PotionEffectType.POISON;
         } else if (equalsOne(name, "wither")) {
             return PotionEffectType.WITHER;
-        } else if (equalsOne(name, "health_boost")) {
+        } else if (startsAndEnds(name, "health", "boost")) {
             return PotionEffectType.HEALTH_BOOST;
         } else if (equalsOne(name, "absorption")) {
             return PotionEffectType.ABSORPTION;
@@ -64,7 +65,7 @@ public class Potion {
             return PotionEffectType.LUCK;
         } else if (equalsOne(name, "unluck")) {
             return PotionEffectType.UNLUCK;
-        } else if (equalsOne(name, "slow_falling", "feather_falling")) {
+        } else if (startsAndEnds(name, "slow", "falling") || startsAndEnds(name, "feather", "falling")) {
             return PotionEffectType.SLOW_FALLING;
         } else if (equalsOne(name, "conduit_power")) {
             return PotionEffectType.CONDUIT_POWER;

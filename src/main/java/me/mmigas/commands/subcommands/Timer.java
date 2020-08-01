@@ -13,8 +13,9 @@ public class Timer extends CMD {
     @Override
     public void command(CommandSender sender, String... args) {
         try {
-            int cooldown = Integer.parseInt(args[1]);
+            long cooldown = Long.parseLong(args[1]);
             crateController.changeCooldown(cooldown);
+            LanguageManager.sendKey(sender, LanguageManager.TIMER_COMMAND_SUCCESSFULLY, cooldown);
         } catch (NumberFormatException e) {
             LanguageManager.sendMessage(sender, "&dCooldown time invalid. Please specify a positive number.");
         }

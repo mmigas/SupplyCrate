@@ -1,7 +1,7 @@
 package me.mmigas.commands.subcommands;
 
-import me.mmigas.crates.CrateController;
 import me.mmigas.commands.CMD;
+import me.mmigas.crates.CrateController;
 import me.mmigas.files.LanguageManager;
 import org.bukkit.command.CommandSender;
 
@@ -37,6 +37,5 @@ public class StartCrate extends CMD {
     public String description() {
         return "Starts the automatic spawning of the crates.";
     }
-
 
 }

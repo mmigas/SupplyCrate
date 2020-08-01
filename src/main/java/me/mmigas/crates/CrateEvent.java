@@ -114,14 +114,14 @@ public class CrateEvent implements Observer {
         List<ItemStack> rewards = new ArrayList<>();
         int rewardsNumber = RANDOM.nextInt(3) + 1;
 
-        nextreward:
+        nextReward:
         for (int i = 0; i < rewardsNumber; i++) {
             double probabilityGenerated = RANDOM.nextDouble() * (tierRewards.get(
                     tierRewards.size() - 1).second);
             for (Pair<ItemStack, Double> pair : tierRewards) {
                 if (probabilityGenerated < pair.second) {
                     rewards.add(pair.first);
-                    continue nextreward;
+                    continue nextReward;
                 }
             }
         }

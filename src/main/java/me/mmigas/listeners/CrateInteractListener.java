@@ -2,6 +2,7 @@ package me.mmigas.listeners;
 
 import me.mmigas.crates.CrateEvent;
 import me.mmigas.files.LanguageManager;
+import me.mmigas.gui.Gui;
 import me.mmigas.persistence.CratesRepository;
 import me.mmigas.utils.InventoryUtil;
 import org.bukkit.Bukkit;
@@ -14,10 +15,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import java.util.Objects;
 import java.util.logging.Level;
 
 public class CrateInteractListener implements Listener {
@@ -34,6 +39,21 @@ public class CrateInteractListener implements Listener {
         event.setCancelled(true);
         event.getPlayer().openInventory(chest.getInventory());
     }
+
+    @EventHandler
+    public void onInventoryClickEvent(InventoryClickEvent event) {
+        if (event.getClickedInventory() != null && event.getClickedInventory().getHolder() instanceof Gui) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClickEvent(InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof Gui) {
+            event.setCancelled(true);
+        }
+    }
+
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {

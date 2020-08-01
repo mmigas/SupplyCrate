@@ -5,7 +5,7 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import me.mmigas.EventSystem;
+import me.mmigas.SupplyCrate;
 import me.mmigas.files.ConfigManager;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.persistence.CratesRepository;
@@ -21,7 +21,7 @@ import java.util.*;
 
 public class CrateController {
 
-    private final EventSystem plugin;
+    private final SupplyCrate plugin;
     private final ConfigManager configManager;
     private final CratesRepository cratesRepository;
 
@@ -34,7 +34,7 @@ public class CrateController {
     private final int totalTiersPercentage;
 
 
-    public CrateController(EventSystem plugin, ConfigManager configManager) {
+    public CrateController(SupplyCrate plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
         this.random = new Random();
@@ -65,7 +65,7 @@ public class CrateController {
         }
         CrateTier crateTier = getCrateTierByIdentifier(name);
         if (crateTier == null) {
-            LanguageManager.sendKey(player, LanguageManager.INVALID_CRATE_TIER, name);
+            LanguageManager.sendKey(player, LanguageManager.INVALID_CRATE_TIER);
         } else {
             startEvent(crateTier, player.getLocation().add(0, 30, 0));
         }
@@ -207,7 +207,7 @@ public class CrateController {
                 maxPosition.getBlockZ() >= location.getBlockZ() && minPosition.getBlockZ() <= location.getBlockZ();
     }
 
-    private CrateTier getCrateTierByIdentifier(String identifier) {
+    public CrateTier getCrateTierByIdentifier(String identifier) {
         for (CrateTier crateTier : tiers) {
             if (crateTier.getIdentifier().equalsIgnoreCase(identifier)) {
                 return crateTier;
@@ -222,7 +222,15 @@ public class CrateController {
         startCrateSpawningTask();
     }
 
-    EventSystem getPlugin() {
+    SupplyCrate getPlugin() {
         return plugin;
+    }
+
+    public List<String> getTiersNames() {
+        List<String> names = new ArrayList<>();
+        for (CrateTier tier : tiers) {
+            names.add(tier.getName());
+        }
+        return names;
     }
 }

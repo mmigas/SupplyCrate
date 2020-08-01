@@ -1,7 +1,7 @@
 package me.mmigas.commands.subcommands;
 
-import me.mmigas.crates.CrateController;
 import me.mmigas.commands.CMD;
+import me.mmigas.crates.CrateController;
 import me.mmigas.files.LanguageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,6 +19,10 @@ public class SpawnCrate extends CMD {
             return;
         }
 
+        if (args.length != 2) {
+            return;
+        }
+
         Player player = (Player) sender;
         crateController.spawnCrate(player, args[1]);
     }
@@ -30,7 +34,7 @@ public class SpawnCrate extends CMD {
 
     @Override
     public String usage() {
-        return "/crate spawn";
+        return "/crate spawn {tier}";
     }
 
     @Override
