@@ -55,6 +55,29 @@ public class CrateTier {
         events.remove(crateEvent);
     }
 
+    void spawnStand(int id, Location location) {
+        CrateEvent event = getCrateEventbyId(id);
+        if (event != null) {
+            event.spawnStand(location);
+        }
+    }
+
+    void despawnStand(int id) {
+        CrateEvent event = getCrateEventbyId(id);
+        if (event != null) {
+            event.removeStand();
+        }
+    }
+
+    private CrateEvent getCrateEventbyId(int id) {
+        for (CrateEvent event : events) {
+            if (event.getId() == id) {
+                return event;
+            }
+        }
+        return null;
+    }
+
     CrateController getCrateController() {
         return crateController;
     }

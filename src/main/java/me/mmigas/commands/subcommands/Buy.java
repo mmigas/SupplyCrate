@@ -35,7 +35,7 @@ public class Buy extends CMD {
         Player player = ((Player) sender);
         if (economy.getBalance(player) > crateTier.getPrice()) {
             SupplyCrate.getEconomy().withdrawPlayer(player, crateTier.getPrice());
-            crateController.spawnCrate(player, crateTier.getIdentifier());
+            crateController.startEventFromPlayer(player, crateTier.getIdentifier());
         } else {
             //TODO: Not enough money
         }

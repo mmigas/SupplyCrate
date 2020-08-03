@@ -24,7 +24,7 @@ public class SpawnCrate extends CMD {
         }
 
         Player player = (Player) sender;
-        crateController.spawnCrate(player, args[1]);
+        crateController.startEventFromPlayer(player, args[1]);
     }
 
     @Override

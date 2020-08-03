@@ -26,8 +26,10 @@ public class CrateEvent implements Observer {
     private Status status;
     private ArmorStand stand;
     private Location location;
+    private Location groundLocation;
     private LocalDateTime landingTime;
     private final int id;
+    private boolean hasStand = false;
 
     private int taskID;
 
@@ -43,18 +45,16 @@ public class CrateEvent implements Observer {
     }
 
     public void startEvent(Location location, float speed, List<Pair<ItemStack, Double>> tierRewards) {
-        location.getWorld().loadChunk(location.getBlockX() >> 4, location.getBlockZ() >> 4, true);
-        location.getWorld().setChunkForceLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4, true);
         this.location = location;
-
-        armorStandSetup(location);
-
+        groundLocation = getGroundLocation(location);
+        if (location.getChunk().isLoaded()) {
+            spawnStand(location);
+        }
         taskID = startCrateFall(speed, tierRewards);
-
         status = Status.FALLING;
     }
 
-    public void armorStandSetup(Location location) {
+    public void spawnStand(Location location) {
         stand = location.getWorld().spawn(location, ArmorStand.class);
         stand.setGravity(false);
         stand.setVisible(false);
@@ -63,36 +63,45 @@ public class CrateEvent implements Observer {
         stand.setInvulnerable(true);
         stand.setMarker(true);
         stand.setMetadata(CRATE_METADATA, new FixedMetadataValue(crateTier.getCrateController().getPlugin(), CRATE_METADATA));
+        hasStand = true;
+    }
+
+    public void removeStand() {
+        stand.remove();
+        hasStand = false;
     }
 
     private int startCrateFall(float speed, List<Pair<ItemStack, Double>> tierRewards) {
         return Bukkit.getScheduler().scheduleSyncRepeatingTask(crateTier.getCrateController().getPlugin(), () -> {
-            stand.teleport(stand.getLocation().subtract(0, speed, 0));
+            location = location.subtract(0, speed, 0);
+            if (hasStand) {
+                stand.teleport(location);
+            }
 
-            if (isOnGround(stand.getLocation(), stand.getWorld())) {
+            if (isOnGround(location)) {
                 this.tierRewards = tierRewards;
-                fallIsOver(stand);
+                fallIsOver();
             }
         }, 0L, 1L);
     }
 
-    public void fallIsOver(ArmorStand stand) {
+    public void fallIsOver() {
         stopCrateFall();
         status = Status.LANDED;
-        spawnCrateChest(stand);
-        stand.getLocation().getWorld().unloadChunk(stand.getLocation().getChunk());
-        stand.getLocation().getWorld().setChunkForceLoaded(stand.getLocation().getBlockX() >> 4, stand.getLocation().getBlockZ() >> 4, false);
+        spawnCrateChest();
         crateTier.finishEvent(this);
     }
 
     @Override
     public void stopCrateFall() {
         Bukkit.getScheduler().cancelTask(taskID);
-        stand.remove();
+        if (hasStand) {
+            stand.remove();
+        }
     }
 
-    private void spawnCrateChest(ArmorStand stand) {
-        Block block = stand.getLocation().getBlock();
+    private void spawnCrateChest() {
+        Block block = location.getBlock();
         block.setType(Material.CHEST);
 
         Chest chest = (Chest) block.getState();
@@ -128,8 +137,12 @@ public class CrateEvent implements Observer {
         return rewards;
     }
 
-    private boolean isOnGround(Location location, World world) {
-        return world.getBlockAt(location.subtract(0, 1, 0)).getType() != Material.AIR;
+    private Location getGroundLocation(Location location) {
+        return location.getWorld().getHighestBlockAt(location).getLocation().add(0, 1, 0);
+    }
+
+    private boolean isOnGround(Location location) {
+        return groundLocation.distance(location) <= 0.9f && groundLocation.distance(location) >= 0;
     }
 
     public CrateTier getCrateTier() {
@@ -141,7 +154,7 @@ public class CrateEvent implements Observer {
     }
 
     public Location getCurrentLocation() {
-        return stand.isValid() ? stand.getLocation() : location;
+        return location;
     }
 
     public String getLandingTime() {

@@ -19,6 +19,8 @@ public class SupplyCrate extends JavaPlugin {
     private CrateController crateController;
     private static Economy economy = null;
 
+    private static SupplyCrate instance;
+
     @Override
     public void onEnable() {
         if (!setupEconomy()) {
@@ -30,6 +32,7 @@ public class SupplyCrate extends JavaPlugin {
         new LanguageManager(this);
         registerCommands();
         registerListener();
+        instance = this;
     }
 
     @Override
@@ -68,5 +71,13 @@ public class SupplyCrate extends JavaPlugin {
 
     public static Economy getEconomy() {
         return economy;
+    }
+
+    public CrateController getCrateController() {
+        return crateController;
+    }
+
+    public static SupplyCrate getInstance() {
+        return instance;
     }
 }

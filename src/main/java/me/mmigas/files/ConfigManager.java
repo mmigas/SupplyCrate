@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
-
 public class ConfigManager {
 
     private final SupplyCrate plugin;

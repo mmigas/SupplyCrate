@@ -1,28 +1,30 @@
 package me.mmigas.listeners;
 
+import me.mmigas.SupplyCrate;
 import me.mmigas.crates.CrateEvent;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.gui.Gui;
 import me.mmigas.persistence.CratesRepository;
 import me.mmigas.utils.InventoryUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import me.mmigas.utils.Pair;
+import org.bukkit.*;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 
-import java.util.Objects;
+import java.util.List;
 import java.util.logging.Level;
 
 public class CrateInteractListener implements Listener {
@@ -98,6 +100,49 @@ public class CrateInteractListener implements Listener {
         if (stand.hasMetadata(CrateEvent.CRATE_METADATA)) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onChunkLoading(ChunkLoadEvent event) {
+        if (event.getChunk().getX() == 187 && event.getChunk().getZ() == 187)
+            Bukkit.getLogger().info("Chunk loading " + event.getChunk().getX() + " " + event.getChunk().getZ());
+        CratesRepository cratesRepository = CratesRepository.getInstance();
+        List<Pair<String, Integer>> crates = cratesRepository.getFallingCratesTiersAndIds();
+        for (Pair<String, Integer> pair : crates) {
+            Location location =
+                    cratesRepository.getCrateLocation(pair.second);
+            if (isCrateInChunk(event.getChunk(), location.getX(), location.getZ())) {
+                Bukkit.getLogger().info("Chunk with crate being loaded and spawning crate stand");
+                SupplyCrate.getInstance().getCrateController().spawnCrateStand(pair, location);
+            }
+        }
+    }
+
+    @EventHandler (priority = EventPriority.MONITOR)
+    public void onChunkUnloading(ChunkUnloadEvent event) {
+        if (event.getChunk().getX() == 187 && event.getChunk().getZ() == 187)
+            Bukkit.getLogger().info("Chunk unloading " + event.getChunk().getX() + " " + event.getChunk().getZ());
+        CratesRepository cratesRepository = CratesRepository.getInstance();
+        List<Pair<String, Integer>> crates = cratesRepository.getFallingCratesTiersAndIds();
+        for (Pair<String, Integer> pair : crates) {
+            Location location = cratesRepository.getCrateLocation(pair.second);
+            if (isCrateInChunk(event.getChunk(), location.getX(), location.getZ())) {
+
+                Bukkit.getLogger().info("Chunk with crate being unloaded and despawning crate stand");
+                SupplyCrate.getInstance().getCrateController().despawnCrateStand(pair);
+            }
+        }
+    }
+
+    private boolean isCrateInChunk(Chunk chunk, double x, double z) {
+        int chunkX = floor(x) >> 4;
+        int chunkZ = floor(z) >> 4;
+        return chunk.getX() == chunkX && chunk.getZ() == chunkZ;
+    }
+
+    public static int floor(double num) {
+        int floor = (int) num;
+        return floor == num ? floor : floor - (int) (Double.doubleToRawLongBits(num) >>> 63);
     }
 
     private static int crateIDFromChest(Chest chest) {

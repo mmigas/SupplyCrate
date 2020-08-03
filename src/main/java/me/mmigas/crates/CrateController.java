@@ -53,7 +53,7 @@ public class CrateController {
     }
 
 
-    public void spawnCrate(Player player, String identifier) {
+    public void startEventFromPlayer(Player player, String identifier) {
         if (worldGuardTest(player.getLocation().getWorld(), player.getLocation())) {
             LanguageManager.sendKey(player, LanguageManager.WORLD_GUARD_REGION);
             return;
@@ -117,7 +117,7 @@ public class CrateController {
     }
 
     private void continueCrateEvents() {
-        List<Pair<String, Integer>> cratesID = CratesRepository.getInstance().getFallingCratesIDsAndTiers();
+        List<Pair<String, Integer>> cratesID = CratesRepository.getInstance().getFallingCratesTiersAndIds();
         for (Pair<String, Integer> pair : cratesID) {
             for (CrateTier tier : tiers) {
                 if (tier.getIdentifier().equals(pair.first)) {
@@ -130,6 +130,22 @@ public class CrateController {
     public void stopFallingCrates() {
         for (CrateTier crateTier : tiers) {
             crateTier.stopFallingCrates();
+        }
+    }
+
+    public void spawnCrateStand(Pair<String, Integer> crate, Location location) {
+        for (CrateTier tier : tiers) {
+            if (tier.getIdentifier().equals(crate.first)) {
+                tier.spawnStand(crate.second, location);
+            }
+        }
+    }
+
+    public void despawnCrateStand(Pair<String, Integer> crate) {
+        for (CrateTier tier : tiers) {
+            if (tier.getIdentifier().equals(crate.first)) {
+                tier.despawnStand(crate.second);
+            }
         }
     }
 

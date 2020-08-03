@@ -143,7 +143,7 @@ public class CratesRepository {
         }
     }
 
-    public List<Pair<String, Integer>> getFallingCratesIDsAndTiers() {
+    public List<Pair<String, Integer>> getFallingCratesTiersAndIds() {
         List<Pair<String, Integer>> crates = new ArrayList<>();
         if (fileConfiguration.getConfigurationSection(CRATE) != null) {
             for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
