@@ -3,16 +3,26 @@ name: SupplyCrate
 description: A simple event plugin
 api-version: 1.16
 version: 1.0
-softdepend: [WorldGuard, WorldEdit, GriefPrevention, PlaceholderAPI]
+softdepend: [WorldGuard, WorldEdit, GriefPrevention]
 
 commands:
   crate:
     description: Crate commands
 
 permissions:
-  eventSystem.spawncrate:
+  supplydrop.buy:
     default: op
-  eventSystem.startcrate:
+  supplydrop.cleanup:
     default: op
-  eventSystem.stopcrate:
+  supplydrop.info:
+    default: true
+  supplydrop.help:
+    default: true
+  supplydrop.spawn:
+    default: op
+  supplydrop.start:
+    default: op
+  supplydrop.stop:
+    default: op
+  supplydrop.timer:
     default: op

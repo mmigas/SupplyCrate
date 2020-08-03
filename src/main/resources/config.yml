@@ -11,6 +11,7 @@ Crates:
     Name: "NORMAL"
     Percentage: 90
     Speed: 1
+    Price: 1000
     Rewards:
       Diamond_Sword:
         Name: "TNT"
@@ -45,6 +46,7 @@ Crates:
     Name: "EPIC"
     Percentage: 10
     Speed: 0.1
+    Price: 100000
     Rewards:
       Diamond_Chestplate:
         Name: "ARMOR"

@@ -30,6 +30,7 @@ public class CrateCommand implements CommandExecutor, TabCompleter {
         commands.add(new CleanupCrates(controller));
         commands.add(new Timer(controller));
         commands.add(new Info(controller));
+        commands.add(new Buy(controller));
     }
 
     @Override
@@ -58,7 +59,7 @@ public class CrateCommand implements CommandExecutor, TabCompleter {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
             return getCommandsWithPermission(sender);
-        } else if (args.length == 2 && (args[0].equals("info") || args[0].equals("spawn"))) {
+        } else if (args.length == 2 && (args[0].equals("info") || args[0].equals("spawn") || args[0].equals("buy"))) {
             return crateController.getTiersNames();
         }
         return new ArrayList<>();

@@ -38,6 +38,7 @@ public class ConfigManager {
     private static final String PERCENTAGE = "Percentage";
     public static final String REWARDS = "Rewards";
     public static final String SPEED = "Speed";
+    public static final String PRICE = "Price";
 
     private static final String LORE = "Lore";
     private static final String EFFECTS = "Effects";
@@ -60,17 +61,17 @@ public class ConfigManager {
             if (section != null) {
 
                 String name = section.getString(NAME);
-                Bukkit.getLogger().info(tier);
                 int percentage = section.getInt(PERCENTAGE) + prevPercentage;
                 prevPercentage = percentage;
                 float speed = (float) section.getDouble(SPEED);
                 section = section.getConfigurationSection(REWARDS);
+                double price = section.getDouble(PRICE);
 
                 List<Pair<ItemStack, Double>> rewards = null;
                 if (section != null) {
                     rewards = readRewardsFromConfigs(section);
                 }
-                crateTiers.add(new CrateTier(crateController, tier, name, percentage, speed, rewards));
+                crateTiers.add(new CrateTier(crateController, tier, name, percentage, speed, rewards, price));
             }
         }
         return crateTiers;

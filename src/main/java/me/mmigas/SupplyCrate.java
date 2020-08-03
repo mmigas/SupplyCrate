@@ -17,7 +17,7 @@ import java.util.logging.Level;
 public class SupplyCrate extends JavaPlugin {
 
     private CrateController crateController;
-    private Economy economy = null;
+    private static Economy economy = null;
 
     @Override
     public void onEnable() {
@@ -66,7 +66,7 @@ public class SupplyCrate extends JavaPlugin {
         return economy != null;
     }
 
-    public Economy getEconomy() {
+    public static Economy getEconomy() {
         return economy;
     }
 }

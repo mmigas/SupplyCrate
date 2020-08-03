@@ -53,7 +53,7 @@ public class CrateController {
     }
 
 
-    public void spawnCrate(Player player, String name) {
+    public void spawnCrate(Player player, String identifier) {
         if (worldGuardTest(player.getLocation().getWorld(), player.getLocation())) {
             LanguageManager.sendKey(player, LanguageManager.WORLD_GUARD_REGION);
             return;
@@ -63,11 +63,12 @@ public class CrateController {
             LanguageManager.sendKey(player, LanguageManager.GRIEF_PREVENTION_REGION);
             return;
         }
-        CrateTier crateTier = getCrateTierByIdentifier(name);
+        CrateTier crateTier = getCrateTierByIdentifier(identifier);
         if (crateTier == null) {
             LanguageManager.sendKey(player, LanguageManager.INVALID_CRATE_TIER);
         } else {
-            startEvent(crateTier, player.getLocation().add(0, 30, 0));
+            Location location = player.getLocation();
+            startEvent(crateTier, new Location(player.getWorld(), location.getBlockX(), 250, location.getBlockZ()));
         }
     }
 
@@ -159,7 +160,7 @@ public class CrateController {
         do {
             x = random.nextInt(((spawnX + radius) - (spawnX - radius)) + 1) + (spawnX - radius);
             z = random.nextInt(((spawnZ + radius) - (spawnZ - radius)) + 1) + (spawnZ - radius);
-            location = new Location(world, x + 0.5f, 200, z + 0.5f);
+            location = new Location(world, x + 0.5f, 250, z + 0.5f);
         } while (worldGuardTest(world, location) || griefPreventionTest(location));
 
         return location;

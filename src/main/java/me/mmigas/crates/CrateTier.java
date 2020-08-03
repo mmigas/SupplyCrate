@@ -14,11 +14,12 @@ public class CrateTier {
     private final String name;
     private final float speed;
     private final int percentage;
+    private final double price;
     private final List<Pair<ItemStack, Double>> rewards;
 
     private final List<CrateEvent> events;
 
-    public CrateTier(CrateController crateController, String identifier, String name, int percentage, float speed, List<Pair<ItemStack, Double>> rewards) {
+    public CrateTier(CrateController crateController, String identifier, String name, int percentage, float speed, List<Pair<ItemStack, Double>> rewards, double price) {
         this.crateController = crateController;
         this.identifier = identifier;
         this.name = name;
@@ -26,6 +27,7 @@ public class CrateTier {
         this.percentage = percentage;
         this.rewards = rewards;
         this.events = new ArrayList<>();
+        this.price = price;
     }
 
     CrateEvent startEvent(Location location, int id) {
@@ -71,5 +73,9 @@ public class CrateTier {
 
     public int getPercentage() {
         return percentage;
+    }
+
+    public double getPrice() {
+        return price;
     }
 }
