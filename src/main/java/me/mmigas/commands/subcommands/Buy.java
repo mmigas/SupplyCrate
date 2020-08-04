@@ -23,9 +23,10 @@ public class Buy extends CMD {
         }
 
         if (args.length != 2) {
-
+            LanguageManager.sendKey(sender, LanguageManager.WRONG_COMMAND_USAGE);
             return;
         }
+
         CrateTier crateTier = crateController.getCrateTierByIdentifier(args[1]);
         if (crateTier == null) {
 
@@ -37,9 +38,8 @@ public class Buy extends CMD {
             SupplyCrate.getEconomy().withdrawPlayer(player, crateTier.getPrice());
             crateController.startEventFromPlayer(player, crateTier.getIdentifier());
         } else {
-            //TODO: Not enough money
+            LanguageManager.sendKey(sender, LanguageManager.NOT_ENOUGH_MONEY);
         }
-
     }
 
     @Override

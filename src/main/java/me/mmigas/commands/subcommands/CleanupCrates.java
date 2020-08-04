@@ -2,7 +2,9 @@ package me.mmigas.commands.subcommands;
 
 import me.mmigas.crates.CrateController;
 import me.mmigas.commands.CMD;
+import me.mmigas.files.LanguageManager;
 import me.mmigas.services.CleanupCratesService;
+import org.apache.commons.codec.language.bm.Lang;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
@@ -24,7 +26,7 @@ public class CleanupCrates extends CMD {
                 int maxDays = Integer.parseInt(args[1]);
                 service.cleanupCrates(sender, maxDays);
             } catch (NumberFormatException e) {
-                sender.sendMessage("Usage: /crate cleanup (max days)");
+                LanguageManager.sendKey(sender, LanguageManager.WRONG_COMMAND_USAGE);
             } catch (Exception e) {
                 sender.sendMessage("Error: " + e.getMessage());
                 Bukkit.getLogger().log(Level.WARNING, "Error while cleaning up old crates", e);

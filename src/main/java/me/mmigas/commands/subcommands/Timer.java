@@ -12,6 +12,10 @@ public class Timer extends CMD {
 
     @Override
     public void command(CommandSender sender, String... args) {
+        if (args.length != 2) {
+            LanguageManager.sendKey(sender, LanguageManager.WRONG_COMMAND_USAGE);
+            return;
+        }
         try {
             long cooldown = Long.parseLong(args[1]);
             crateController.changeCooldown(cooldown);

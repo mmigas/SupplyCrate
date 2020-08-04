@@ -20,6 +20,7 @@ public class SpawnCrate extends CMD {
         }
 
         if (args.length != 2) {
+            LanguageManager.sendKey(sender, LanguageManager.WRONG_COMMAND_USAGE);
             return;
         }
 

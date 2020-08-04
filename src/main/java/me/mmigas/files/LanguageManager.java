@@ -34,12 +34,17 @@ public class LanguageManager {
 
     public static final String TIMER_COMMAND_SUCCESSFULLY = CRATE_CATEGORY + "timer_command_successfully";
 
+    public static final String NOT_ENOUGH_MONEY = "not_enough_money";
+
     public static final String WORLD_GUARD_REGION = CRATE_CATEGORY + "world_guard_region";
     public static final String GRIEF_PREVENTION_REGION = CRATE_CATEGORY + "grief_prevention_region";
     public static final String INVALID_CRATE_TIER = CRATE_CATEGORY + "invalid_crate_tier";
 
+    public static final String WRONG_COMMAND_USAGE = CRATE_CATEGORY + "wrong_command_usage";
+
     private static final String LOCATION_PLACEHOLDER = "%CrateLocation%";
     private static final String CRATE_TIER_PLACEHOLDER = "%CrateTier%";
+    private static final String CRATE_PRICE_PLACEHOLDER = "%CratePrice%";
     private static final String PLAYER_PLACEHOLDER = "%Player%";
     private static final String DELAY_PLACEHOLDER = "%Delay%";
 
@@ -105,11 +110,15 @@ public class LanguageManager {
         fileConfiguration.addDefault(CRATE_COLLECTED, "&bCrate collected by &a" + PLAYER_PLACEHOLDER);
         fileConfiguration.addDefault(CRATE_CANNOT_BREAK, "&bYou cannot break this crate.");
 
+        fileConfiguration.addDefault(NOT_ENOUGH_MONEY, "&cYou dont have enough money to buy " + CRATE_TIER_PLACEHOLDER + " crate. You need " + CRATE_PRICE_PLACEHOLDER + "$");
+
         fileConfiguration.addDefault(TIMER_COMMAND_SUCCESSFULLY, "%bCooldown changed to " + DELAY_PLACEHOLDER + " minutes.");
 
         fileConfiguration.addDefault(WORLD_GUARD_REGION, "&dYou cannot spawn crates in world guard's regions.");
         fileConfiguration.addDefault(GRIEF_PREVENTION_REGION, "&dYou cannot spawn crates in Grief Prevention's regions.");
         fileConfiguration.addDefault(INVALID_CRATE_TIER, "&dInvalid crate tier.");
+
+        fileConfiguration.addDefault(WRONG_COMMAND_USAGE, "&cWrong command usage. Use /crate help to see all the commands usages.");
 
         fileConfiguration.options().copyDefaults(false);
         return fileConfiguration;
@@ -144,6 +153,9 @@ public class LanguageManager {
 
             if (message.contains(CRATE_TIER_PLACEHOLDER)) {
                 message = message.replace(LOCATION_PLACEHOLDER, crate.getCrateTier().getName());
+            }
+            if (message.contains(CRATE_PRICE_PLACEHOLDER)) {
+                message = message.replace(CRATE_PRICE_PLACEHOLDER, String.valueOf(crate.getCrateTier().getPrice()));
             }
         }
 

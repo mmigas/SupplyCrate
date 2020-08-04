@@ -27,7 +27,7 @@ public class Info extends CMD {
         }
 
         if (args.length != 2) {
-            //TODO: Manage all the wrong usages.
+            LanguageManager.sendKey(sender, LanguageManager.WRONG_COMMAND_USAGE);
             return;
         }
 

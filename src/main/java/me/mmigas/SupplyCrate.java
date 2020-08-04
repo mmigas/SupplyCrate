@@ -4,7 +4,9 @@ import me.mmigas.commands.CrateCommand;
 import me.mmigas.crates.CrateController;
 import me.mmigas.files.ConfigManager;
 import me.mmigas.files.LanguageManager;
-import me.mmigas.listeners.CrateInteractListener;
+import me.mmigas.listeners.ChunksListener;
+import me.mmigas.listeners.InteractionListener;
+import me.mmigas.listeners.InventoryListener;
 import me.mmigas.persistence.CratesRepository;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -46,7 +48,9 @@ public class SupplyCrate extends JavaPlugin {
     }
 
     private void registerListener() {
-        getServer().getPluginManager().registerEvents(new CrateInteractListener(), this);
+        getServer().getPluginManager().registerEvents(new InventoryListener(), this);
+        getServer().getPluginManager().registerEvents(new ChunksListener(), this);
+        getServer().getPluginManager().registerEvents(new InteractionListener(), this);
     }
 
     public boolean isWorldGuardEnabled() {
