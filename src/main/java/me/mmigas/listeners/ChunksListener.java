@@ -19,10 +19,8 @@ public class ChunksListener implements Listener {
         CratesRepository cratesRepository = CratesRepository.getInstance();
         List<Pair<String, Integer>> crates = cratesRepository.getFallingCratesTiersAndIds();
         for (Pair<String, Integer> pair : crates) {
-            Location location =
-                    cratesRepository.getCrateLocation(pair.second);
+            Location location = cratesRepository.getCrateLocation(pair.second);
             if (ListenerUtils.isCrateInChunk(event.getChunk(), location.getX(), location.getZ())) {
-                Bukkit.getLogger().info("Chunk with crate being loaded and spawning crate stand");
                 SupplyCrate.getInstance().getCrateController().spawnCrateStand(pair, location);
             }
         }
@@ -35,8 +33,6 @@ public class ChunksListener implements Listener {
         for (Pair<String, Integer> pair : crates) {
             Location location = cratesRepository.getCrateLocation(pair.second);
             if (ListenerUtils.isCrateInChunk(event.getChunk(), location.getX(), location.getZ())) {
-
-                Bukkit.getLogger().info("Chunk with crate being unloaded and despawning crate stand");
                 SupplyCrate.getInstance().getCrateController().despawnCrateStand(pair);
             }
         }

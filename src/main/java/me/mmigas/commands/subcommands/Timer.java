@@ -20,7 +20,6 @@ public class Timer extends CMD {
         }
         try {
             long cooldown = Long.parseLong(args[1]);
-            Bukkit.getLogger().info(args[1]);
             crateController.changeCooldown(cooldown);
             LanguageManager.sendKey(sender, LanguageManager.TIMER_COMMAND_SUCCESSFULLY, cooldown);
             ConfigManager.getInstance().saveTimer(cooldown);
