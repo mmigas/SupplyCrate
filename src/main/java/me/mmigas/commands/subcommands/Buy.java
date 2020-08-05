@@ -27,19 +27,8 @@ public class Buy extends CMD {
             return;
         }
 
-        CrateTier crateTier = crateController.getCrateTierByIdentifier(args[1]);
-        if (crateTier == null) {
-
-            return;
-        }
-        Economy economy = SupplyCrate.getEconomy();
         Player player = ((Player) sender);
-        if (economy.getBalance(player) > crateTier.getPrice()) {
-            SupplyCrate.getEconomy().withdrawPlayer(player, crateTier.getPrice());
-            crateController.startEventFromPlayer(player, crateTier.getIdentifier());
-        } else {
-            LanguageManager.sendKey(sender, LanguageManager.NOT_ENOUGH_MONEY);
-        }
+        crateController.buyCrateEvent(player, args[1]);
     }
 
     @Override
@@ -55,5 +44,10 @@ public class Buy extends CMD {
     @Override
     public String description() {
         return "Buy's a crate in the players location.";
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return SupplyCrate.getEconomy() != null;
     }
 }

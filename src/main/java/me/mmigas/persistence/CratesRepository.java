@@ -27,7 +27,7 @@ public class CratesRepository {
 
     public static final String CRATE = "crate";
     public static final String STATUS = "status";
-    public static final String TIER = "tier";
+    public static final String IDENTIFIER = "identifier";
     public static final String WORLD = "world";
     public static final String LOCATION = "location";
     public static final String LOCATION_X = LOCATION + "x";
@@ -53,7 +53,7 @@ public class CratesRepository {
         configuration.createSection(id);
         configuration = configuration.getConfigurationSection(id);
         configuration.set(WORLD, (Objects.requireNonNull(location.getWorld())).getName());
-        configuration.set(TIER, crate.getCrateTier().getIdentifier());
+        configuration.set(IDENTIFIER, crate.getCrateTier().getIdentifier());
         configuration.set(LOCATION_X, location.getX());
         configuration.set(LOCATION_Y, location.getY());
         configuration.set(LOCATION_Z, location.getZ());
@@ -74,7 +74,7 @@ public class CratesRepository {
         Location location = crate.getCurrentLocation();
 
         ConfigurationSection configuration = fileConfiguration.getConfigurationSection(id);
-        configuration.set(TIER, crate.getCrateTier().getName());
+        configuration.set(IDENTIFIER, crate.getCrateTier().getName());
         configuration.set(LOCATION_X, location.getBlockX());
         configuration.set(LOCATION_Y, location.getBlockY());
         configuration.set(LOCATION_Z, location.getBlockZ());
@@ -148,13 +148,24 @@ public class CratesRepository {
         if (fileConfiguration.getConfigurationSection(CRATE) != null) {
             for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
                 if (Objects.equals(fileConfiguration.getString(CRATE + "." + key + "." + STATUS), Status.FALLING.toString())) {
-                    String tier = fileConfiguration.getString(CRATE + "." + key + "." + TIER);
+                    String tier = fileConfiguration.getString(CRATE + "." + key + "." + IDENTIFIER);
                     Pair<String, Integer> pair = new Pair<>(tier, Integer.parseInt(key));
                     crates.add(pair);
                 }
             }
         }
         return crates;
+    }
+
+    public String getCrateTier(int crateId) {
+        if (fileConfiguration.getConfigurationSection(CRATE) != null) {
+            for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
+                if (Integer.parseInt(key) == crateId) {
+                    return fileConfiguration.getConfigurationSection(CRATE + "." + key).get(IDENTIFIER).toString();
+                }
+            }
+        }
+        return null;
     }
 
     public Location getCrateLocation(int crateId) {

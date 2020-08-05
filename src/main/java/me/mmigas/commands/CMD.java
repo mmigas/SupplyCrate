@@ -21,4 +21,8 @@ public abstract class CMD {
     public String permission() {
         return CrateCommand.PERMISSION_PREFIX + label();
     }
+
+    public boolean isEnabled() {
+        return true;
+    }
 }

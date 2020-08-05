@@ -45,32 +45,31 @@ public class ConfigManager {
     private static final String POTION_MULTIPLIER = "Multiplier";
     private static final String ENCHANTMENTS = "Enchantments";
 
+    private static ConfigManager instance;
 
     public ConfigManager(SupplyCrate plugin) {
         this.plugin = plugin;
         plugin.getConfig().options().copyDefaults(true);
         plugin.saveDefaultConfig();
+        instance = this;
     }
 
     public List<CrateTier> readTiersFromConfigs(CrateController crateController) {
         List<CrateTier> crateTiers = new ArrayList<>();
         int prevPercentage = 0;
-        for (String tier : plugin.getConfig().getConfigurationSection(CRATE).getKeys(false)) {
-            ConfigurationSection section = plugin.getConfig().getConfigurationSection(CRATE + "." + tier);
+        for (String identifier : plugin.getConfig().getConfigurationSection(CRATE).getKeys(false)) {
+            ConfigurationSection section = plugin.getConfig().getConfigurationSection(CRATE + "." + identifier);
             if (section != null) {
-
                 String name = section.getString(NAME);
                 int percentage = section.getInt(PERCENTAGE) + prevPercentage;
                 prevPercentage = percentage;
                 float speed = (float) section.getDouble(SPEED);
-                section = section.getConfigurationSection(REWARDS);
                 double price = section.getDouble(PRICE);
+                section = section.getConfigurationSection(REWARDS);
 
-                List<Pair<ItemStack, Double>> rewards = null;
-                if (section != null) {
-                    rewards = readRewardsFromConfigs(section);
-                }
-                crateTiers.add(new CrateTier(crateController, tier, name, percentage, speed, rewards, price));
+                List<Pair<ItemStack, Double>> rewards;
+                rewards = readRewardsFromConfigs(section);
+                crateTiers.add(new CrateTier(crateController, identifier, name, percentage, speed, rewards, price));
             }
         }
         return crateTiers;
@@ -210,10 +209,17 @@ public class ConfigManager {
         return worlds;
     }
 
+    public void saveTimer(long cooldown) {
+        getConfig().set(COOLDOWN, cooldown);
+    }
+
     public FileConfiguration getConfig() {
         return plugin.getConfig();
     }
 
+    public static ConfigManager getInstance() {
+        return instance;
+    }
 
 }
 

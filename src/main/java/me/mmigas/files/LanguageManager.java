@@ -1,9 +1,13 @@
 package me.mmigas.files;
 
 import me.mmigas.SupplyCrate;
+import me.mmigas.crates.CrateController;
 import me.mmigas.crates.CrateEvent;
+import me.mmigas.crates.CrateTier;
+import me.mmigas.persistence.CratesRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -29,12 +33,12 @@ public class LanguageManager {
     public static final String CRATE_BROADCAST = CRATE_CATEGORY + "broadcast";
     public static final String CRATE_COLLECTED = CRATE_CATEGORY + "collected";
     public static final String CRATE_CANNOT_BREAK = CRATE_CATEGORY + "cannot-break";
-    public static final String NO_PERMISSION = "&cNot enough permission!";
-    public static final String MUST_BE_PLAYER = "&cYou must be a player!";
+    public static final String MUST_BE_PLAYER = CRATE_CATEGORY + "&cYou must be a player!";
 
     public static final String TIMER_COMMAND_SUCCESSFULLY = CRATE_CATEGORY + "timer_command_successfully";
 
-    public static final String NOT_ENOUGH_MONEY = "not_enough_money";
+    public static final String CRATE_BOUGHT = CRATE_CATEGORY + "crate_bought";
+    public static final String NOT_ENOUGH_MONEY = CRATE_CATEGORY + "not_enough_money";
 
     public static final String WORLD_GUARD_REGION = CRATE_CATEGORY + "world_guard_region";
     public static final String GRIEF_PREVENTION_REGION = CRATE_CATEGORY + "grief_prevention_region";
@@ -51,13 +55,15 @@ public class LanguageManager {
     private static final String FILE = "language.yml";
 
     private final SupplyCrate plugin;
+    private final CratesRepository cratesRepository;
 
     private final Map<String, String> strings;
 
     private static LanguageManager instance;
 
-    public LanguageManager(SupplyCrate plugin) {
+    public LanguageManager(SupplyCrate plugin, CratesRepository cratesRepository) {
         this.plugin = plugin;
+        this.cratesRepository = cratesRepository;
         FileConfiguration fileConfiguration = createFileConfigurator();
         strings = new HashMap<>();
         instance = this;
@@ -109,10 +115,9 @@ public class LanguageManager {
         fileConfiguration.addDefault(CRATE_BROADCAST, "&b" + CRATE_TIER_PLACEHOLDER + " Crate spawned at " + LOCATION_PLACEHOLDER);
         fileConfiguration.addDefault(CRATE_COLLECTED, "&bCrate collected by &a" + PLAYER_PLACEHOLDER);
         fileConfiguration.addDefault(CRATE_CANNOT_BREAK, "&bYou cannot break this crate.");
-
-        fileConfiguration.addDefault(NOT_ENOUGH_MONEY, "&cYou dont have enough money to buy " + CRATE_TIER_PLACEHOLDER + " crate. You need " + CRATE_PRICE_PLACEHOLDER + "$");
-
-        fileConfiguration.addDefault(TIMER_COMMAND_SUCCESSFULLY, "%bCooldown changed to " + DELAY_PLACEHOLDER + " minutes.");
+        fileConfiguration.addDefault(CRATE_BOUGHT, "&cYou have bought a " + CRATE_TIER_PLACEHOLDER + " crate for " + CRATE_PRICE_PLACEHOLDER + "$.");
+        fileConfiguration.addDefault(NOT_ENOUGH_MONEY, "&cYou dont have enough money to buy " + CRATE_TIER_PLACEHOLDER + " crate. You need " + CRATE_PRICE_PLACEHOLDER + "$.");
+        fileConfiguration.addDefault(TIMER_COMMAND_SUCCESSFULLY, "&bCooldown changed to " + DELAY_PLACEHOLDER + " minutes.");
 
         fileConfiguration.addDefault(WORLD_GUARD_REGION, "&dYou cannot spawn crates in world guard's regions.");
         fileConfiguration.addDefault(GRIEF_PREVENTION_REGION, "&dYou cannot spawn crates in Grief Prevention's regions.");
@@ -144,38 +149,70 @@ public class LanguageManager {
     }
 
     private String updatePlaceholders(String message, Object... objects) {
-        CrateEvent crate = findCrateInObjects(objects);
-        if (crate != null) {
-            if (message.contains(LOCATION_PLACEHOLDER)) {
-                message = message.replace(LOCATION_PLACEHOLDER, "&bx: &c" + crate.getCurrentLocation().getBlockX() + " &bz: &c"
-                        + crate.getCurrentLocation().getBlockZ());
-            }
+        int crateID = findCrateIDInObjects(objects);
+        long timer = findStoredTimeInObjects(objects);
+        Player player = findPlayerInObjects(objects);
+        String tier = findCrateTierinObjects(objects);
+        CrateTier crateTier = tier != null ? plugin.getCrateController().getCrateTierByIdentifier(tier) : null;
 
-            if (message.contains(CRATE_TIER_PLACEHOLDER)) {
-                message = message.replace(LOCATION_PLACEHOLDER, crate.getCrateTier().getName());
-            }
-            if (message.contains(CRATE_PRICE_PLACEHOLDER)) {
-                message = message.replace(CRATE_PRICE_PLACEHOLDER, String.valueOf(crate.getCrateTier().getPrice()));
-            }
+
+        if (crateID != 0 || crateTier != null) {
+            message = replaceCratePlaceholder(message, crateID, crateTier);
         }
 
-        if (message.contains(PLAYER_PLACEHOLDER)) {
-            Player player = findPlayerInObjects(objects);
+        if (timer != -1 && message.contains(DELAY_PLACEHOLDER)) {
+            message = message.replace(DELAY_PLACEHOLDER, String.valueOf(timer));
+        }
+
+        if (player != null && message.contains(PLAYER_PLACEHOLDER)) {
             message = message.replace(PLAYER_PLACEHOLDER, player.getDisplayName());
         }
-
-        if (message.contains(DELAY_PLACEHOLDER)) {
-            long storedTime = findStoredTimeInObjects(objects);
-            message = message.replace(DELAY_PLACEHOLDER, String.valueOf(((plugin.getConfig().getInt("Delay") * 1000) - (System.currentTimeMillis() - storedTime)) / 1000));
-        }
-
         return message;
     }
 
-    private CrateEvent findCrateInObjects(Object... objects) {
+    private String replaceCratePlaceholder(String message, int crateID, CrateTier crateTier) {
+        if (message.contains(LOCATION_PLACEHOLDER)) {
+            Location location = cratesRepository.getCrateLocation(crateID);
+            message = message.replace(LOCATION_PLACEHOLDER, "&bx: &c" + location.getBlockX() + " &bz: &c"
+                    + location.getBlockZ());
+        }
+
+        if (message.contains(CRATE_TIER_PLACEHOLDER)) {
+            if (crateID != -1) {
+                String tier = cratesRepository.getCrateTier(crateID);
+                if (tier != null) {
+                    message = message.replace(CRATE_TIER_PLACEHOLDER, tier);
+                }
+            } else if (crateTier != null) {
+                message = message.replace(CRATE_TIER_PLACEHOLDER, crateTier.getName());
+            }
+        }
+
+        if (message.contains(CRATE_PRICE_PLACEHOLDER)) {
+            if (crateID != -1) {
+                String tier = cratesRepository.getCrateTier(crateID);
+                crateTier = plugin.getCrateController().getCrateTierByIdentifier(tier);
+                message = message.replace(CRATE_PRICE_PLACEHOLDER, String.valueOf(crateTier.getPrice()));
+            } else if (crateTier != null) {
+                message = message.replace(CRATE_PRICE_PLACEHOLDER, String.valueOf(crateTier.getPrice()));
+            }
+        }
+        return message;
+    }
+
+    private int findCrateIDInObjects(Object... objects) {
         for (Object object : objects) {
-            if (object instanceof CrateEvent) {
-                return (CrateEvent) object;
+            if (object instanceof Integer) {
+                return (Integer) object;
+            }
+        }
+        return -1;
+    }
+
+    private String findCrateTierinObjects(Object... objects) {
+        for (Object object : objects) {
+            if (object instanceof String) {
+                return (String) object;
             }
         }
         return null;
@@ -187,16 +224,16 @@ public class LanguageManager {
                 return (Player) object;
             }
         }
-        throw new IllegalStateException();
+        return null;
     }
 
-    private Long findStoredTimeInObjects(Object... objects) {
+    private long findStoredTimeInObjects(Object... objects) {
         for (Object object : objects) {
             if (object instanceof Long) {
-                return (long) object;
+                return (Long) object;
             }
         }
-        throw new IllegalStateException();
+        return -1;
     }
 
 }

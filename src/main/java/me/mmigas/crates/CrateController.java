@@ -52,26 +52,48 @@ public class CrateController {
         continueCrateEvents();
     }
 
+    public void buyCrateEvent(Player player, String identifier) {
+        if (isValidSpawnLocation(player)) {
+            CrateTier crateTier = getCrateTierByIdentifier(identifier);
+            if (crateTier == null) {
+                LanguageManager.sendKey(player, LanguageManager.INVALID_CRATE_TIER);
+            } else {
+                if (SupplyCrate.getEconomy().getBalance(player) > crateTier.getPrice()) {
+                    SupplyCrate.getEconomy().withdrawPlayer(player, crateTier.getPrice());
+                    Location location = player.getLocation();
+                    CrateEvent crateEvent = startEvent(crateTier, new Location(player.getWorld(), location.getBlockX(), 250, location.getBlockZ()));
+                    LanguageManager.sendKey(player, LanguageManager.CRATE_BOUGHT, crateEvent.getId());
+                } else {
+                    LanguageManager.sendKey(player, LanguageManager.NOT_ENOUGH_MONEY, crateTier.getIdentifier());
+                }
+            }
+        }
+    }
 
     public void startEventFromPlayer(Player player, String identifier) {
+        if (isValidSpawnLocation(player)) {
+            CrateTier crateTier = getCrateTierByIdentifier(identifier);
+            if (crateTier == null) {
+                LanguageManager.sendKey(player, LanguageManager.INVALID_CRATE_TIER);
+            } else {
+                Location location = player.getLocation();
+                startEvent(crateTier, new Location(player.getWorld(), location.getBlockX(), 250, location.getBlockZ()));
+            }
+        }
+    }
+
+    private boolean isValidSpawnLocation(Player player) {
         if (worldGuardTest(player.getLocation().getWorld(), player.getLocation())) {
             LanguageManager.sendKey(player, LanguageManager.WORLD_GUARD_REGION);
-            return;
+            return false;
         }
 
         if (griefPreventionTest(player.getLocation())) {
             LanguageManager.sendKey(player, LanguageManager.GRIEF_PREVENTION_REGION);
-            return;
+            return false;
         }
-        CrateTier crateTier = getCrateTierByIdentifier(identifier);
-        if (crateTier == null) {
-            LanguageManager.sendKey(player, LanguageManager.INVALID_CRATE_TIER);
-        } else {
-            Location location = player.getLocation();
-            startEvent(crateTier, new Location(player.getWorld(), location.getBlockX(), 250, location.getBlockZ()));
-        }
+        return true;
     }
-
 
     public int startCrateSpawningTask() {
         if (spawnCrateTaskId != -1) {
@@ -100,10 +122,12 @@ public class CrateController {
         startEvent(crateTier, location);
     }
 
-    private void startEvent(CrateTier crateTier, Location location) {
+    private CrateEvent startEvent(CrateTier crateTier, Location location) {
         int id = random.nextInt();
         CrateEvent crateEvent = crateTier.startEvent(location, id);
         cratesRepository.addCrate(crateEvent);
+        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, crateEvent.getId());
+        return crateEvent;
     }
 
     public boolean stopCrateSpawningTask() {
@@ -243,10 +267,10 @@ public class CrateController {
         return plugin;
     }
 
-    public List<String> getTiersNames() {
+    public List<String> getIdentifiers() {
         List<String> names = new ArrayList<>();
         for (CrateTier tier : tiers) {
-            names.add(tier.getName());
+            names.add(tier.getIdentifier());
         }
         return names;
     }

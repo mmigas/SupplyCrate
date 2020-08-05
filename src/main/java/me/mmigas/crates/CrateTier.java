@@ -34,7 +34,6 @@ public class CrateTier {
         CrateEvent crateEvent = new CrateEvent(this, id);
         crateEvent.startEvent(location, speed, rewards);
         events.add(crateEvent);
-        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, crateEvent);
         return crateEvent;
     }
 

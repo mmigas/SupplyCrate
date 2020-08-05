@@ -29,9 +29,9 @@ public class SupplyCrate extends JavaPlugin {
             Bukkit.getLogger().log(Level.WARNING, (String.format("[%s] - Vault not found. You won't have access to the buy command.", getDescription().getName())));
         }
         ConfigManager configManager = new ConfigManager(this);
-        new CratesRepository(this);
+        CratesRepository cratesRepository = new CratesRepository(this);
         crateController = new CrateController(this, configManager);
-        new LanguageManager(this);
+        new LanguageManager(this, cratesRepository);
         registerCommands();
         registerListener();
         instance = this;
@@ -70,7 +70,7 @@ public class SupplyCrate extends JavaPlugin {
             return false;
         }
         economy = rsp.getProvider();
-        return economy != null;
+        return true;
     }
 
     public static Economy getEconomy() {

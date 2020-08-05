@@ -1,5 +1,6 @@
 package me.mmigas.commands;
 
+import me.mmigas.SupplyCrate;
 import me.mmigas.commands.subcommands.*;
 import me.mmigas.crates.CrateController;
 import me.mmigas.files.LanguageManager;
@@ -42,7 +43,7 @@ public class CrateCommand implements CommandExecutor, TabCompleter {
 
         for (CMD cmd : commands) {
             if (cmd.label().equalsIgnoreCase(args[0])) {
-                if (!sender.hasPermission(cmd.permission())) {
+                if (!sender.hasPermission(cmd.permission()) || !cmd.isEnabled()) {
                     break;
                 }
                 cmd.command(sender, args);
@@ -59,8 +60,8 @@ public class CrateCommand implements CommandExecutor, TabCompleter {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
             return getCommandsWithPermission(sender);
-        } else if (args.length == 2 && (args[0].equals("info") || args[0].equals("spawn") || args[0].equals("buy"))) {
-            return crateController.getTiersNames();
+        } else if (args.length == 2 && (args[0].equals("info") || args[0].equals("spawn") || (args[0].equals("buy") && SupplyCrate.getEconomy() != null))) {
+            return crateController.getIdentifiers();
         }
         return new ArrayList<>();
     }
