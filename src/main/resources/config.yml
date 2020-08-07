@@ -9,21 +9,21 @@ Worlds:
 Crates:
   Normal:
     Name: "NORMAL"
-    Percentage: 90
+    Chance: 90
     Speed: 1
     Price: 1000
     Rewards:
       Diamond_Sword:
         Name: "TNT"
-        Lore: "THIS IS A FUCKING TNT"
-        Percentage: 10
+        Lore: "THIS IS A TNT"
+        Chance: 10
         Enchantments:
           Sharpness: 1
           Unbreaking: 2
       Potion:
-        Name: "REGEN BITCHES"
-        Lore: "HEAL ME BITCH"
-        Percentage: 30
+        Name: "REGEN"
+        Lore: "HEAL ME"
+        Chance: 30
         Effects:
           Regen:
             Duration: 60
@@ -34,7 +34,7 @@ Crates:
       Splash_Potion:
         Name: "DIE DIE"
         Lore: "Your dead to me"
-        Percentage: 50
+        Chance: 50
         Effects:
           Harm:
             Duration: 10
@@ -44,14 +44,14 @@ Crates:
             Multiplier: 10
   Epic:
     Name: "EPIC"
-    Percentage: 10
+    Chance: 10
     Speed: 0.1
     Price: 100000
     Rewards:
       Diamond_Chestplate:
         Name: "ARMOR"
         Lore: "THIS IS A FUCKING TNT"
-        Percentage: 50
+        Chance: 50
         Enchantments:
           Protection: 1
           Unbreaking: 2

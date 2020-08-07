@@ -34,7 +34,7 @@ public class CrateEvent implements Observer {
     private int taskID;
 
     private final CrateTier crateTier;
-    private List<Pair<ItemStack, Double>> tierRewards;
+    private List<Pair<ItemStack, Integer>> tierRewards;
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss_dd-MM-yyyy");
     private static final Random RANDOM = new Random();
@@ -44,7 +44,7 @@ public class CrateEvent implements Observer {
         this.id = id;
     }
 
-    public void startEvent(Location location, float speed, List<Pair<ItemStack, Double>> tierRewards) {
+    public void startEvent(Location location, float speed, List<Pair<ItemStack, Integer>> tierRewards) {
         this.location = location;
         groundLocation = getGroundLocation(location);
         if (location.getChunk().isLoaded()) {
@@ -71,7 +71,7 @@ public class CrateEvent implements Observer {
         hasStand = false;
     }
 
-    private int startCrateFall(float speed, List<Pair<ItemStack, Double>> tierRewards) {
+    private int startCrateFall(float speed, List<Pair<ItemStack, Integer>> tierRewards) {
         return Bukkit.getScheduler().scheduleSyncRepeatingTask(crateTier.getCrateController().getPlugin(), () -> {
             location = location.subtract(0, speed, 0);
             if (hasStand) {
@@ -127,7 +127,7 @@ public class CrateEvent implements Observer {
         for (int i = 0; i < rewardsNumber; i++) {
             double probabilityGenerated = RANDOM.nextDouble() * (tierRewards.get(
                     tierRewards.size() - 1).second);
-            for (Pair<ItemStack, Double> pair : tierRewards) {
+            for (Pair<ItemStack, Integer> pair : tierRewards) {
                 if (probabilityGenerated < pair.second) {
                     rewards.add(pair.first);
                     continue nextReward;

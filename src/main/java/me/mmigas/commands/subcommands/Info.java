@@ -54,7 +54,7 @@ public class Info extends CMD {
     private void fillInventory(CrateTier tier, Gui gui) {
         Item item;
         for (int i = 0; i < tier.getRewards().size(); i++) {
-            Pair<ItemStack, Double> pair = tier.getRewards().get(i);
+            Pair<ItemStack, Integer> pair = tier.getRewards().get(i);
             ItemStack itemStack = pair.first;
             item = new Item(itemStack);
             gui.setItem(i, item);
@@ -67,7 +67,7 @@ public class Info extends CMD {
             gui.setItem(i, item);
         }
 
-        item = new Item(Material.GREEN_WOOL, ChatColor.translateAlternateColorCodes('&', "&cPercentage: " + tier.getPercentage()));
+        item = new Item(Material.GREEN_WOOL, ChatColor.translateAlternateColorCodes('&', "&cChance: " + tier.getChance()));
         gui.setItem(rewardsSize + 13, item);
     }
 

@@ -31,7 +31,7 @@ public class CrateController {
 
     private int spawnCrateTaskId = -1;
     private long cooldown;
-    private final int totalTiersPercentage;
+    private final int totalTiersChance;
 
 
     public CrateController(SupplyCrate plugin, ConfigManager configManager) {
@@ -47,7 +47,7 @@ public class CrateController {
             spawnCrateTaskId = startCrateSpawningTask();
         }
 
-        totalTiersPercentage = tiers.get(tiers.size() - 1).getPercentage();
+        totalTiersChance = tiers.get(tiers.size() - 1).getChance();
 
         continueCrateEvents();
     }
@@ -106,10 +106,10 @@ public class CrateController {
     }
 
     private CrateTier selectRandomCrateTier() {
-        int percentage = random.nextInt(totalTiersPercentage);
+        int chance = random.nextInt(totalTiersChance);
         CrateTier crateTier = null;
         for (CrateTier tier : tiers) {
-            if (percentage < tier.getPercentage()) {
+            if (chance < tier.getChance()) {
                 crateTier = tier;
                 break;
             }

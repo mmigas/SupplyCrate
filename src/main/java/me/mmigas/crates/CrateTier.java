@@ -1,6 +1,5 @@
 package me.mmigas.crates;
 
-import me.mmigas.files.LanguageManager;
 import me.mmigas.utils.Pair;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -13,18 +12,18 @@ public class CrateTier {
     private final String identifier;
     private final String name;
     private final float speed;
-    private final int percentage;
+    private final int chance;
     private final double price;
-    private final List<Pair<ItemStack, Double>> rewards;
+    private final List<Pair<ItemStack, Integer>> rewards;
 
     private final List<CrateEvent> events;
 
-    public CrateTier(CrateController crateController, String identifier, String name, int percentage, float speed, List<Pair<ItemStack, Double>> rewards, double price) {
+    public CrateTier(CrateController crateController, String identifier, String name, int chance, float speed, List<Pair<ItemStack, Integer>> rewards, double price) {
         this.crateController = crateController;
         this.identifier = identifier;
         this.name = name;
         this.speed = speed;
-        this.percentage = percentage;
+        this.chance = chance;
         this.rewards = rewards;
         this.events = new ArrayList<>();
         this.price = price;
@@ -55,20 +54,20 @@ public class CrateTier {
     }
 
     void spawnStand(int id, Location location) {
-        CrateEvent event = getCrateEventbyId(id);
+        CrateEvent event = getCrateEventById(id);
         if (event != null) {
             event.spawnStand(location);
         }
     }
 
     void despawnStand(int id) {
-        CrateEvent event = getCrateEventbyId(id);
+        CrateEvent event = getCrateEventById(id);
         if (event != null) {
             event.removeStand();
         }
     }
 
-    private CrateEvent getCrateEventbyId(int id) {
+    private CrateEvent getCrateEventById(int id) {
         for (CrateEvent event : events) {
             if (event.getId() == id) {
                 return event;
@@ -89,12 +88,12 @@ public class CrateTier {
         return name;
     }
 
-    public List<Pair<ItemStack, Double>> getRewards() {
+    public List<Pair<ItemStack, Integer>> getRewards() {
         return rewards;
     }
 
-    public int getPercentage() {
-        return percentage;
+    public int getChance() {
+        return chance;
     }
 
     public double getPrice() {

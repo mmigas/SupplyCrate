@@ -34,7 +34,7 @@ public class ConfigManager {
 
     public static final String CRATE = "Crates";
     private static final String NAME = "Name";
-    private static final String PERCENTAGE = "Percentage";
+    private static final String CHANCE = "Chance";
     public static final String REWARDS = "Rewards";
     public static final String SPEED = "Speed";
     public static final String PRICE = "Price";
@@ -56,33 +56,33 @@ public class ConfigManager {
 
     public List<CrateTier> readTiersFromConfigs(CrateController crateController) {
         List<CrateTier> crateTiers = new ArrayList<>();
-        int prevPercentage = 0;
+        int prevChance = 0;
         for (String identifier : plugin.getConfig().getConfigurationSection(CRATE).getKeys(false)) {
             ConfigurationSection section = plugin.getConfig().getConfigurationSection(CRATE + "." + identifier);
             if (section != null) {
                 String name = section.getString(NAME);
-                int percentage = section.getInt(PERCENTAGE) + prevPercentage;
-                prevPercentage = percentage;
+                int chance = section.getInt(CHANCE) + prevChance;
+                prevChance = chance;
                 float speed = (float) section.getDouble(SPEED);
                 double price = section.getDouble(PRICE);
                 section = section.getConfigurationSection(REWARDS);
 
-                List<Pair<ItemStack, Double>> rewards;
+                List<Pair<ItemStack, Integer>> rewards;
                 rewards = readRewardsFromConfigs(section);
-                crateTiers.add(new CrateTier(crateController, identifier, name, percentage, speed, rewards, price));
+                crateTiers.add(new CrateTier(crateController, identifier, name, chance, speed, rewards, price));
             }
         }
         return crateTiers;
     }
 
-    private List<Pair<ItemStack, Double>> readRewardsFromConfigs(ConfigurationSection section) {
-        List<Pair<ItemStack, Double>> rewards = new ArrayList<>();
+    private List<Pair<ItemStack, Integer>> readRewardsFromConfigs(ConfigurationSection section) {
+        List<Pair<ItemStack, Integer>> rewards = new ArrayList<>();
         for (String itemName : section.getKeys(false)) {
             Material material = Material.matchMaterial(itemName);
             if (material != null) {
 
                 ItemStack itemStack = new ItemStack(material);
-                Pair<ItemStack, Double> reward = applyAttributes(section, itemStack, itemName, rewards.isEmpty() ? 0 : rewards.get(rewards.size() - 1).second);
+                Pair<ItemStack, Integer> reward = applyAttributes(section, itemStack, itemName, rewards.isEmpty() ? 0 : rewards.get(rewards.size() - 1).second);
                 if (reward != null) {
                     rewards.add(reward);
                 }
@@ -94,12 +94,12 @@ public class ConfigManager {
         return rewards;
     }
 
-    private Pair<ItemStack, Double> applyAttributes(ConfigurationSection section, ItemStack item, String itemName, double previousPercentage) {
+    private Pair<ItemStack, Integer> applyAttributes(ConfigurationSection section, ItemStack item, String itemName, int previousChance) {
         section = section.getConfigurationSection(itemName);
-        double percentage;
+        int chance;
 
-        percentage = readPercentage(section, itemName, previousPercentage);
-        if (percentage == -1) {
+        chance = readPercentage(section, itemName, previousChance);
+        if (chance == -1) {
             return null;
         }
 
@@ -111,7 +111,7 @@ public class ConfigManager {
             applyEnchantments(section, item);
         }
 
-        return new Pair<>(item, percentage);
+        return new Pair<>(item, chance);
     }
 
     private void applyName(ConfigurationSection section, ItemStack item) {
@@ -134,21 +134,21 @@ public class ConfigManager {
         }
     }
 
-    private double readPercentage(ConfigurationSection section, String itemName, double prevPercentage) {
-        double percentage;
-        if (section.contains(PERCENTAGE)) {
-            percentage = section.getDouble(PERCENTAGE);
+    private int readPercentage(ConfigurationSection section, String itemName, int prevChance) {
+        int chance;
+        if (section.contains(CHANCE)) {
+            chance = section.getInt(CHANCE);
 
-            if (percentage >= 0) {
-                percentage = percentage + prevPercentage;
-                return percentage;
+            if (chance >= 0) {
+                chance = chance + prevChance;
+                return chance;
             } else {
-                Bukkit.getLogger().log(Level.WARNING, String.format("The %s has an invalid percentage. Current percentage %d", itemName, percentage));
+                Bukkit.getLogger().log(Level.WARNING, String.format("The %s has an invalid chance. Current chance %d", itemName, chance));
                 return -1;
             }
 
         } else {
-            Bukkit.getLogger().log(Level.WARNING, String.format("The %s has an no percentage.", itemName));
+            Bukkit.getLogger().log(Level.WARNING, String.format("The %s has an no chance.", itemName));
             return -1;
         }
     }
