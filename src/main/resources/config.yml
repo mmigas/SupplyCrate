@@ -50,7 +50,7 @@ Crates:
     Rewards:
       Diamond_Chestplate:
         Name: "ARMOR"
-        Lore: "THIS IS A FUCKING TNT"
+        Lore: "THIS IS A TNT"
         Percentage: 50
         Enchantments:
           Protection: 1
