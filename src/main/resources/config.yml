@@ -15,14 +15,14 @@ Crates:
     Rewards:
       Diamond_Sword:
         Name: "TNT"
-        Lore: "THIS IS A FUCKING TNT"
+        Lore: "THIS IS A TNT"
         Percentage: 10
         Enchantments:
           Sharpness: 1
           Unbreaking: 2
       Potion:
-        Name: "REGEN BITCHES"
-        Lore: "HEAL ME BITCH"
+        Name: "REGEN"
+        Lore: "HEAL ME"
         Percentage: 30
         Effects:
           Regen:
