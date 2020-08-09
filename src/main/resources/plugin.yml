@@ -10,19 +10,19 @@ commands:
     description: Crate commands
 
 permissions:
-  supplydrop.buy:
+  supplycrate.buy:
     default: op
-  supplydrop.cleanup:
+  supplycrate.cleanup:
     default: op
-  supplydrop.info:
+  supplycrate.info:
     default: true
-  supplydrop.help:
+  supplycrate.help:
     default: true
-  supplydrop.spawn:
+  supplycrate.spawn:
     default: op
-  supplydrop.start:
+  supplycrate.start:
     default: op
-  supplydrop.stop:
+  supplycrate.stop:
     default: op
-  supplydrop.timer:
+  supplycrate.timer:
     default: op

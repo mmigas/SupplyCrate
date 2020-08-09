@@ -18,7 +18,7 @@ public class CrateCommand implements CommandExecutor, TabCompleter {
 
     private final List<CMD> commands = new ArrayList<>();
 
-    public static final String PERMISSION_PREFIX = "supplyDrop.";
+    public static final String PERMISSION_PREFIX = "supplycrate.";
 
     private final CrateController crateController;
 
