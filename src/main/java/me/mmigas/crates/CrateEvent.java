@@ -149,7 +149,7 @@ public class CrateEvent implements Observer {
 
     private List<ItemStack> generateMaterials() {
         List<ItemStack> rewards = new ArrayList<>();
-        int rewardsNumber = RANDOM.nextInt(3) + 1;
+        int rewardsNumber = RANDOM.nextInt(5) + 1;
 
         nextReward:
         for (int i = 0; i < rewardsNumber; i++) {
