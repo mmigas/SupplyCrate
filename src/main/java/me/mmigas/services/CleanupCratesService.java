@@ -41,7 +41,7 @@ public class CleanupCratesService {
             }
 
             if (destroyBlock(section, sender, stringDate)) {
-                cratesRepository.removeCrate(CratesRepository.CRATE + "." + key);
+                cratesRepository.removeCrate(Integer.parseInt(key));
 
                 counter++;
             }

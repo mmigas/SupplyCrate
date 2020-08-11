@@ -6,24 +6,20 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.block.Chest;
 import org.bukkit.event.Listener;
+import org.bukkit.util.NumberConversions;
 
 import java.util.logging.Level;
 
-public class ListenerUtils  {
+public class ListenerUtils {
 
     private ListenerUtils() {
 
     }
 
     static boolean isCrateInChunk(Chunk chunk, double x, double z) {
-        int chunkX = floor(x) >> 4;
-        int chunkZ = floor(z) >> 4;
+        int chunkX = NumberConversions.floor(x) >> 4;
+        int chunkZ = NumberConversions.floor(z) >> 4;
         return chunk.getX() == chunkX && chunk.getZ() == chunkZ;
-    }
-
-    static int floor(double num) {
-        int floor = (int) num;
-        return floor == num ? floor : floor - (int) (Double.doubleToRawLongBits(num) >>> 63);
     }
 
     static int crateIDFromChest(Chest chest) {

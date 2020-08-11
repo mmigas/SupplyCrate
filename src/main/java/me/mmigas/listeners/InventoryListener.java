@@ -1,11 +1,14 @@
 package me.mmigas.listeners;
 
+import me.mmigas.SupplyCrate;
 import me.mmigas.crates.CrateEvent;
+import me.mmigas.crates.CrateTier;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.gui.Gui;
 import me.mmigas.persistence.CratesRepository;
 import me.mmigas.utils.InventoryUtil;
-import org.bukkit.*;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,7 +33,6 @@ public class InventoryListener implements Listener {
         }
     }
 
-
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getInventory().getHolder() instanceof Chest) || !(event.getPlayer() instanceof Player)) {
@@ -39,7 +41,7 @@ public class InventoryListener implements Listener {
 
         Chest chest = (Chest) event.getInventory().getHolder();
         int crateID = ListenerUtils.crateIDFromChest(chest);
-        if (crateID == -1 || !InventoryUtil.isInventoryEmpty(chest.getInventory()) || !chest.hasMetadata(CrateEvent.CRATE_METADATA)) {
+        if (crateID == -1 || !InventoryUtil.isInventoryEmpty(chest.getInventory())) {
             return;
         }
 

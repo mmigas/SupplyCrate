@@ -23,18 +23,29 @@ public class SupplyCrate extends JavaPlugin {
 
     private static SupplyCrate instance;
 
+    private boolean isWorldGuardEnabled;
+    private boolean isGriefPreventionEnabled;
+    private boolean isVaultEnabled;
+    private boolean isHdEnabled;
+
     @Override
     public void onEnable() {
-        if (!setupEconomy()) {
-            Bukkit.getLogger().log(Level.WARNING, (String.format("[%s] - Vault not found. You won't have access to the buy command.", getDescription().getName())));
-        }
+        instance = this;
+        isWorldGuardEnabled = checkWorldGuard();
+        isGriefPreventionEnabled = checkGriefPrevention();
+        isVaultEnabled = checkVault();
+        isHdEnabled = checkHd();
+
         ConfigManager configManager = new ConfigManager(this);
         CratesRepository cratesRepository = new CratesRepository(this);
         crateController = new CrateController(this, configManager);
         new LanguageManager(this, cratesRepository);
         registerCommands();
         registerListener();
-        instance = this;
+
+        if (!isVaultEnabled) {
+            Bukkit.getLogger().log(Level.WARNING, (String.format("[%s] - Vault not found. You won't have access to the buy command.", getDescription().getName())));
+        }
     }
 
     @Override
@@ -53,15 +64,15 @@ public class SupplyCrate extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InteractionListener(), this);
     }
 
-    public boolean isWorldGuardEnabled() {
+    private boolean checkWorldGuard() {
         return getServer().getPluginManager().isPluginEnabled("WorldGuard");
     }
 
-    public boolean isGriefPreventionEnabled() {
+    private boolean checkGriefPrevention() {
         return getServer().getPluginManager().isPluginEnabled("GriefPrevention");
     }
 
-    private boolean setupEconomy() {
+    private boolean checkVault() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
         }
@@ -71,6 +82,26 @@ public class SupplyCrate extends JavaPlugin {
         }
         economy = rsp.getProvider();
         return true;
+    }
+
+    private boolean checkHd() {
+        return Bukkit.getPluginManager().isPluginEnabled("HolographicDisplays");
+    }
+
+    public boolean isWorldGuardEnabled() {
+        return isWorldGuardEnabled;
+    }
+
+    public boolean isGriefPreventionEnabled() {
+        return isGriefPreventionEnabled;
+    }
+
+    public boolean isVaultEnabled() {
+        return isVaultEnabled;
+    }
+
+    public boolean isHdEnabled() {
+        return isHdEnabled;
     }
 
     public static Economy getEconomy() {

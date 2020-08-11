@@ -33,7 +33,6 @@ public class CrateController {
     private long cooldown;
     private final int totalTiersChance;
 
-
     public CrateController(SupplyCrate plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
@@ -49,7 +48,29 @@ public class CrateController {
 
         totalTiersChance = tiers.get(tiers.size() - 1).getChance();
 
-        continueCrateEvents();
+        setupCrates();
+    }
+
+    private void setupCrates() {
+        spawnHolograms();
+        resumeCrateEvents();
+    }
+
+    private void spawnHolograms() {
+        List<Pair<String, Integer>> cratesID = CratesRepository.getInstance().getLandedCratesTiersAndIDs();
+        for (Pair<String, Integer> pair : cratesID) {
+            CrateTier tier = getCrateTierByIdentifier(pair.first);
+            Location location = CratesRepository.getInstance().getCrateLocation(pair.second);
+            tier.spawnHD(pair.second, location);
+        }
+    }
+
+    private void resumeCrateEvents() {
+        List<Pair<String, Integer>> cratesID = CratesRepository.getInstance().getFallingCratesTiersAndIDs();
+        for (Pair<String, Integer> pair : cratesID) {
+            CrateTier tier = getCrateTierByIdentifier(pair.first);
+            tier.startEvent(CratesRepository.getInstance().getCrateLocation(pair.second), pair.second);
+        }
     }
 
     public void buyCrateEvent(Player player, String identifier) {
@@ -61,7 +82,7 @@ public class CrateController {
                 if (SupplyCrate.getEconomy().getBalance(player) > crateTier.getPrice()) {
                     SupplyCrate.getEconomy().withdrawPlayer(player, crateTier.getPrice());
                     Location location = player.getLocation();
-                    CrateEvent crateEvent = startEvent(crateTier, new Location(player.getWorld(), location.getBlockX(), 250, location.getBlockZ()));
+                    CrateEvent crateEvent = startEvent(crateTier, new Location(player.getWorld(), location.getBlockX(), 240, location.getBlockZ()));
                     LanguageManager.sendKey(player, LanguageManager.CRATE_BOUGHT, crateEvent.getId());
                 } else {
                     LanguageManager.sendKey(player, LanguageManager.NOT_ENOUGH_MONEY, crateTier.getIdentifier());
@@ -80,6 +101,19 @@ public class CrateController {
                 startEvent(crateTier, new Location(player.getWorld(), location.getBlockX(), 250, location.getBlockZ()));
             }
         }
+    }
+
+    private void startEvent(CrateTier crateTier) {
+        Location location = generateLocation();
+        startEvent(crateTier, location);
+    }
+
+    private CrateEvent startEvent(CrateTier crateTier, Location location) {
+        int id = random.nextInt();
+        CrateEvent crateEvent = crateTier.startEvent(location, id);
+        cratesRepository.addCrate(crateEvent);
+        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, crateEvent.getId());
+        return crateEvent;
     }
 
     private boolean isValidSpawnLocation(Player player) {
@@ -117,19 +151,6 @@ public class CrateController {
         return crateTier;
     }
 
-    private void startEvent(CrateTier crateTier) {
-        Location location = generateLocation();
-        startEvent(crateTier, location);
-    }
-
-    private CrateEvent startEvent(CrateTier crateTier, Location location) {
-        int id = random.nextInt();
-        CrateEvent crateEvent = crateTier.startEvent(location, id);
-        cratesRepository.addCrate(crateEvent);
-        LanguageManager.broadcast(LanguageManager.CRATE_BROADCAST, crateEvent.getId());
-        return crateEvent;
-    }
-
     public boolean stopCrateSpawningTask() {
         if (spawnCrateTaskId == -1) {
             return false;
@@ -140,35 +161,24 @@ public class CrateController {
         }
     }
 
-    private void continueCrateEvents() {
-        List<Pair<String, Integer>> cratesID = CratesRepository.getInstance().getFallingCratesTiersAndIds();
-        for (Pair<String, Integer> pair : cratesID) {
-            for (CrateTier tier : tiers) {
-                if (tier.getIdentifier().equals(pair.first)) {
-                    tier.startEvent(CratesRepository.getInstance().getCrateLocation(pair.second), pair.second);
-                }
-            }
-        }
-    }
-
     public void stopFallingCrates() {
         for (CrateTier crateTier : tiers) {
             crateTier.stopFallingCrates();
         }
     }
 
-    public void spawnCrateStand(Pair<String, Integer> crate, Location location) {
+    public void spawnCrateStand(Pair<String, Integer> crate) {
         for (CrateTier tier : tiers) {
             if (tier.getIdentifier().equals(crate.first)) {
-                tier.spawnStand(crate.second, location);
+                tier.spawnCrate(crate.second);
             }
         }
     }
 
-    public void despawnCrateStand(Pair<String, Integer> crate) {
+    public void despawnCrate(Pair<String, Integer> crate) {
         for (CrateTier tier : tiers) {
             if (tier.getIdentifier().equals(crate.first)) {
-                tier.despawnStand(crate.second);
+                tier.despawnCrate(crate.second);
             }
         }
     }

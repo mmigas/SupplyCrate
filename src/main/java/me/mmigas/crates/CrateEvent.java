@@ -1,10 +1,13 @@
 package me.mmigas.crates;
 
+import com.gmail.filoghost.holographicdisplays.api.Hologram;
+import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
+import me.mmigas.SupplyCrate;
 import me.mmigas.utils.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.ArmorStand;
@@ -28,8 +31,9 @@ public class CrateEvent implements Observer {
     private Location location;
     private Location groundLocation;
     private LocalDateTime landingTime;
+    private Hologram hd;
     private final int id;
-    private boolean hasStand = false;
+    private boolean isChunkLoaded = false;
 
     private int taskID;
 
@@ -46,15 +50,21 @@ public class CrateEvent implements Observer {
 
     public void startEvent(Location location, float speed, List<Pair<ItemStack, Integer>> tierRewards) {
         this.location = location;
-        groundLocation = getGroundLocation(location);
+        groundLocation = getGroundLocation();
         if (location.getChunk().isLoaded()) {
-            spawnStand(location);
+            spawn();
         }
-        taskID = startCrateFall(speed, tierRewards);
+        taskID = runCrateFall(speed, tierRewards);
         status = Status.FALLING;
     }
 
-    public void spawnStand(Location location) {
+    void spawn() {
+        spawnStand();
+        spawnHD();
+        isChunkLoaded = true;
+    }
+
+    private void spawnStand() {
         stand = location.getWorld().spawn(location, ArmorStand.class);
         stand.setGravity(false);
         stand.setVisible(false);
@@ -63,19 +73,37 @@ public class CrateEvent implements Observer {
         stand.setInvulnerable(true);
         stand.setMarker(true);
         stand.setMetadata(CRATE_METADATA, new FixedMetadataValue(crateTier.getCrateController().getPlugin(), CRATE_METADATA));
-        hasStand = true;
     }
 
-    public void removeStand() {
+    private void spawnHD() {
+        if (SupplyCrate.getInstance().isHdEnabled()) {
+            hd = HologramsAPI.createHologram(SupplyCrate.getInstance(), new Location(location.getWorld(), location.getX(), location.getY() + 3.0, location.getZ()));
+            String[] lines = crateTier.getHdText().split("\n");
+            for (String line : lines) {
+                hd.appendTextLine(ChatColor.translateAlternateColorCodes('&', line));
+            }
+        }
+    }
+
+    void despawn() {
         stand.remove();
-        hasStand = false;
+        if (SupplyCrate.getInstance().isHdEnabled())
+            hd.delete();
+        isChunkLoaded = false;
     }
 
-    private int startCrateFall(float speed, List<Pair<ItemStack, Integer>> tierRewards) {
+    private void teleportHD(float speed) {
+        if (SupplyCrate.getInstance().isHdEnabled()) {
+            hd.teleport(hd.getLocation().subtract(0, speed, 0));
+        }
+    }
+
+    private int runCrateFall(float speed, List<Pair<ItemStack, Integer>> tierRewards) {
         return Bukkit.getScheduler().scheduleSyncRepeatingTask(crateTier.getCrateController().getPlugin(), () -> {
-            location = location.subtract(0, speed, 0);
-            if (hasStand) {
+            location.subtract(0, speed, 0);
+            if (isChunkLoaded) {
                 stand.teleport(location);
+                teleportHD(speed);
             }
 
             if (isOnGround(location)) {
@@ -95,8 +123,8 @@ public class CrateEvent implements Observer {
     @Override
     public void stopCrateFall() {
         Bukkit.getScheduler().cancelTask(taskID);
-        if (hasStand) {
-            stand.remove();
+        if (isChunkLoaded) {
+            despawn();
         }
     }
 
@@ -105,7 +133,6 @@ public class CrateEvent implements Observer {
         block.setType(Material.CHEST);
 
         Chest chest = (Chest) block.getState();
-        chest.setMetadata(CRATE_METADATA, new FixedMetadataValue(crateTier.getCrateController().getPlugin(), CRATE_METADATA));
         chest.setCustomName(CRATE_NAME + id);
         chest.update();
 
@@ -117,6 +144,7 @@ public class CrateEvent implements Observer {
 
         landingTime = LocalDateTime.now();
         location = chest.getLocation();
+        crateTier.spawnHD(id, location);
     }
 
     private List<ItemStack> generateMaterials() {
@@ -137,12 +165,13 @@ public class CrateEvent implements Observer {
         return rewards;
     }
 
-    private Location getGroundLocation(Location location) {
+    private Location getGroundLocation() {
         return location.getWorld().getHighestBlockAt(location).getLocation().add(0, 1, 0);
     }
 
     private boolean isOnGround(Location location) {
-        return groundLocation.distance(location) <= 0.9f && groundLocation.distance(location) >= 0;
+        groundLocation = getGroundLocation();
+        return groundLocation.distance(location) <= 0.2f && groundLocation.distance(location) >= 0;
     }
 
     public CrateTier getCrateTier() {
@@ -164,5 +193,6 @@ public class CrateEvent implements Observer {
     public int getId() {
         return id;
     }
+
 }
 

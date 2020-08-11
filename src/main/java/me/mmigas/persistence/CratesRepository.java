@@ -2,6 +2,7 @@ package me.mmigas.persistence;
 
 import me.mmigas.SupplyCrate;
 import me.mmigas.crates.CrateEvent;
+import me.mmigas.crates.CrateTier;
 import me.mmigas.crates.Status;
 import me.mmigas.utils.Pair;
 import org.bukkit.Bukkit;
@@ -41,7 +42,6 @@ public class CratesRepository {
     public CratesRepository(SupplyCrate plugin) {
         this.plugin = plugin;
         this.fileConfiguration = loadCrateFile(getFile());
-
         instance = this;
     }
 
@@ -74,7 +74,7 @@ public class CratesRepository {
         Location location = crate.getCurrentLocation();
 
         ConfigurationSection configuration = fileConfiguration.getConfigurationSection(id);
-        configuration.set(IDENTIFIER, crate.getCrateTier().getName());
+        configuration.set(IDENTIFIER, crate.getCrateTier().getIdentifier());
         configuration.set(LOCATION_X, location.getBlockX());
         configuration.set(LOCATION_Y, location.getBlockY());
         configuration.set(LOCATION_Z, location.getBlockZ());
@@ -83,13 +83,16 @@ public class CratesRepository {
         save();
     }
 
-    public void removeCrate(int crateId) {
-        String id = keyFromId(crateId);
-        removeCrate(id);
+    public void removeCrate(int crateID) {
+        String tierIdentifier = getCrateTierIdentifier(crateID);
+        CrateTier crateTier = SupplyCrate.getInstance().getCrateController().getCrateTierByIdentifier(tierIdentifier);
+        crateTier.removeHologram(crateID);
+        String key = keyFromId(crateID);
+        removeCrate(key);
     }
 
-    public void removeCrate(String crateId) {
-        fileConfiguration.set(crateId, null);
+    private void removeCrate(String crateID) {
+        fileConfiguration.set(crateID, null);
         save();
     }
 
@@ -143,7 +146,7 @@ public class CratesRepository {
         }
     }
 
-    public List<Pair<String, Integer>> getFallingCratesTiersAndIds() {
+    public List<Pair<String, Integer>> getFallingCratesTiersAndIDs() {
         List<Pair<String, Integer>> crates = new ArrayList<>();
         if (fileConfiguration.getConfigurationSection(CRATE) != null) {
             for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
@@ -157,10 +160,24 @@ public class CratesRepository {
         return crates;
     }
 
-    public String getCrateTier(int crateId) {
+    public List<Pair<String, Integer>> getLandedCratesTiersAndIDs() {
+        List<Pair<String, Integer>> crates = new ArrayList<>();
         if (fileConfiguration.getConfigurationSection(CRATE) != null) {
             for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
-                if (Integer.parseInt(key) == crateId) {
+                if (Objects.equals(fileConfiguration.getString(CRATE + "." + key + "." + STATUS), Status.LANDED.toString())) {
+                    String tier = fileConfiguration.getString(CRATE + "." + key + "." + IDENTIFIER);
+                    Pair<String, Integer> pair = new Pair<>(tier, Integer.parseInt(key));
+                    crates.add(pair);
+                }
+            }
+        }
+        return crates;
+    }
+
+    public String getCrateTierIdentifier(int crateID) {
+        if (fileConfiguration.getConfigurationSection(CRATE) != null) {
+            for (String key : fileConfiguration.getConfigurationSection(CRATE).getKeys(false)) {
+                if (Integer.parseInt(key) == crateID) {
                     return fileConfiguration.getConfigurationSection(CRATE + "." + key).get(IDENTIFIER).toString();
                 }
             }

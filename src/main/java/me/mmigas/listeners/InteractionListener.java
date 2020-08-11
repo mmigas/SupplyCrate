@@ -34,7 +34,7 @@ public class InteractionListener implements Listener {
 
         Chest chest = (Chest) event.getBlock().getState();
         int crateID = ListenerUtils.crateIDFromChest(chest);
-        if (crateID == -1 || !chest.hasMetadata(CrateEvent.CRATE_METADATA)) {
+        if (crateID == -1) {
             return;
         }
 

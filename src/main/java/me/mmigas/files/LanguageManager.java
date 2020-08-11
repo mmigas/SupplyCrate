@@ -1,8 +1,6 @@
 package me.mmigas.files;
 
 import me.mmigas.SupplyCrate;
-import me.mmigas.crates.CrateController;
-import me.mmigas.crates.CrateEvent;
 import me.mmigas.crates.CrateTier;
 import me.mmigas.persistence.CratesRepository;
 import org.bukkit.Bukkit;
@@ -179,7 +177,7 @@ public class LanguageManager {
 
         if (message.contains(CRATE_TIER_PLACEHOLDER)) {
             if (crateID != -1) {
-                String tier = cratesRepository.getCrateTier(crateID);
+                String tier = cratesRepository.getCrateTierIdentifier(crateID);
                 if (tier != null) {
                     message = message.replace(CRATE_TIER_PLACEHOLDER, tier);
                 }
@@ -190,7 +188,7 @@ public class LanguageManager {
 
         if (message.contains(CRATE_PRICE_PLACEHOLDER)) {
             if (crateID != -1) {
-                String tier = cratesRepository.getCrateTier(crateID);
+                String tier = cratesRepository.getCrateTierIdentifier(crateID);
                 crateTier = plugin.getCrateController().getCrateTierByIdentifier(tier);
                 message = message.replace(CRATE_PRICE_PLACEHOLDER, String.valueOf(crateTier.getPrice()));
             } else if (crateTier != null) {

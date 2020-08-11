@@ -34,6 +34,7 @@ public class ConfigManager {
 
     public static final String CRATE = "Crates";
     private static final String NAME = "Name";
+    private static final String HD = "Hologram";
     private static final String CHANCE = "Chance";
     public static final String REWARDS = "Rewards";
     public static final String SPEED = "Speed";
@@ -60,19 +61,35 @@ public class ConfigManager {
         for (String identifier : plugin.getConfig().getConfigurationSection(CRATE).getKeys(false)) {
             ConfigurationSection section = plugin.getConfig().getConfigurationSection(CRATE + "." + identifier);
             if (section != null) {
-                String name = section.getString(NAME);
-                int chance = section.getInt(CHANCE) + prevChance;
-                prevChance = chance;
-                float speed = (float) section.getDouble(SPEED);
-                double price = section.getDouble(PRICE);
-                section = section.getConfigurationSection(REWARDS);
-
-                List<Pair<ItemStack, Integer>> rewards;
-                rewards = readRewardsFromConfigs(section);
-                crateTiers.add(new CrateTier(crateController, identifier, name, chance, speed, rewards, price));
+                CrateTier crateTier = setupTier(section, crateController, prevChance);
+                prevChance = crateTier.getChance();
+                crateTiers.add(crateTier);
             }
         }
         return crateTiers;
+    }
+
+    private CrateTier setupTier(ConfigurationSection section, CrateController crateController, int prevChance) {
+        String name = section.getString(NAME);
+        String hdText = section.getString(HD);
+        int chance = section.getInt(CHANCE) + prevChance;
+        float speed = (float) section.getDouble(SPEED);
+        double price = section.getDouble(PRICE);
+        ConfigurationSection rewardsSection = section.getConfigurationSection(REWARDS);
+        List<Pair<ItemStack, Integer>> rewards = readRewardsFromConfigs(rewardsSection);
+
+        CrateTier crateTier = new CrateTier(crateController, section.getName(), chance, speed, rewards);
+
+        if (name != null) {
+            crateTier.setName(name);
+        }
+        if (hdText != null) {
+            crateTier.setHdText(hdText);
+        }
+        if (price != 0) {
+            crateTier.setPrice(price);
+        }
+        return crateTier;
     }
 
     private List<Pair<ItemStack, Integer>> readRewardsFromConfigs(ConfigurationSection section) {
