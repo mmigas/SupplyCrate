@@ -1,7 +1,7 @@
 main: me.mmigas.SupplyCrate
 name: SupplyCrate
 description: A simple event plugin
-api-version: 1.16
+api-version: 1.13
 version: 1.1.0
 softdepend: [WorldGuard, WorldEdit, GriefPrevention, Vault, HolographicDisplays]
 
