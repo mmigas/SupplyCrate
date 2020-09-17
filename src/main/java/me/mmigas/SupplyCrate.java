@@ -9,6 +9,7 @@ import me.mmigas.listeners.InteractionListener;
 import me.mmigas.listeners.InventoryListener;
 import me.mmigas.persistence.CratesRepository;
 import net.milkbowl.vault.economy.Economy;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,8 @@ public class SupplyCrate extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        int pluginId = 8870;
+        Metrics metrics = new Metrics(this, pluginId);
         instance = this;
         isWorldGuardEnabled = checkWorldGuard();
         isGriefPreventionEnabled = checkGriefPrevention();
