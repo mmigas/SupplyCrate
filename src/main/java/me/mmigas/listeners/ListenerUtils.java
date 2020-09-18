@@ -4,8 +4,9 @@ import me.mmigas.crates.CrateEvent;
 import me.mmigas.persistence.CratesRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
-import org.bukkit.event.Listener;
 import org.bukkit.util.NumberConversions;
 
 import java.util.logging.Level;
@@ -42,4 +43,14 @@ public class ListenerUtils {
             return -1;
         }
     }
+
+    static boolean isBlockACrate(Block block) {
+        if (block.getType() != Material.CHEST) {
+            return false;
+        }
+        Chest chest = (Chest) block.getState();
+        int crateID = ListenerUtils.crateIDFromChest(chest);
+        return crateID != -1;
+    }
+
 }

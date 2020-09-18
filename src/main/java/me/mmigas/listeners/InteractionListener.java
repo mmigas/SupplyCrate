@@ -3,7 +3,6 @@ package me.mmigas.listeners;
 import me.mmigas.crates.CrateEvent;
 import me.mmigas.files.LanguageManager;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
@@ -13,8 +12,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-
-import java.util.Iterator;
 
 public class InteractionListener implements Listener {
     @EventHandler
@@ -32,36 +29,15 @@ public class InteractionListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if (event.getBlock().getType() != Material.CHEST) {
-            return;
+        if (ListenerUtils.isBlockACrate(event.getBlock())) {
+            event.setCancelled(true);
+            LanguageManager.sendKey(event.getPlayer(), LanguageManager.CRATE_CANNOT_BREAK);
         }
-
-        Chest chest = (Chest) event.getBlock().getState();
-        int crateID = ListenerUtils.crateIDFromChest(chest);
-        if (crateID == -1) {
-            return;
-        }
-
-        event.setCancelled(true);
-        LanguageManager.sendKey(event.getPlayer(), LanguageManager.CRATE_CANNOT_BREAK);
     }
 
     @EventHandler
     public void onBlockExplodeEvent(EntityExplodeEvent event) {
-        Iterator<Block> iterator = event.blockList().iterator();
-        while (iterator.hasNext()) {
-            Block block = iterator.next();
-            if (block.getType() != Material.CHEST) {
-                continue;
-            }
-            Chest chest = (Chest) block.getState();
-            int crateID = ListenerUtils.crateIDFromChest(chest);
-            if (crateID == -1) {
-                return;
-            }
-
-            iterator.remove();
-        }
+        event.blockList().removeIf(ListenerUtils::isBlockACrate);
     }
 
     @EventHandler
