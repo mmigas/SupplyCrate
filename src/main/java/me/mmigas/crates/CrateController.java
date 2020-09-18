@@ -15,8 +15,10 @@ import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 
+import java.io.IOException;
 import java.util.*;
 
 public class CrateController {
@@ -27,7 +29,7 @@ public class CrateController {
 
     private final Random random;
 
-    private final List<CrateTier> tiers;
+    private List<CrateTier> tiers;
 
     private int spawnCrateTaskId = -1;
     private long cooldown;
@@ -39,7 +41,12 @@ public class CrateController {
         this.random = new Random();
         this.cratesRepository = CratesRepository.getInstance();
 
-        tiers = configManager.readTiersFromConfigs(this);
+        try {
+            tiers = configManager.readTiersFromConfigs(this);
+        } catch (IOException | InvalidConfigurationException e) {
+            e.printStackTrace();
+            plugin.disablePlugin();
+        }
 
         if (configManager.getConfig().getBoolean(ConfigManager.AUTOSTART)) {
             cooldown = plugin.getConfig().getInt(ConfigManager.COOLDOWN);

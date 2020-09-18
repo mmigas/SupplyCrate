@@ -11,13 +11,17 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,10 +36,11 @@ public class ConfigManager {
     public static final String AUTOSTART = "Autostart";
     public static final String WORLDS = "Worlds";
 
+
     public static final String CRATE = "Crates";
-    private static final String NAME = "Name";
-    private static final String HD = "Hologram";
-    private static final String CHANCE = "Chance";
+    static final String NAME = "Name";
+    static final String HD = "Hologram";
+    static final String CHANCE = "Chance";
     public static final String REWARDS = "Rewards";
     public static final String SPEED = "Speed";
     public static final String PRICE = "Price";
@@ -52,33 +57,63 @@ public class ConfigManager {
         this.plugin = plugin;
         plugin.getConfig().options().copyDefaults(true);
         plugin.saveDefaultConfig();
+        addDefaultCrate();
         instance = this;
     }
 
-    public List<CrateTier> readTiersFromConfigs(CrateController crateController) {
+    private void addDefaultCrate() {
+        File dir = new File(plugin.getDataFolder() + File.separator + CRATE);
+        if (dir.exists() && dir.listFiles().length > 0) {
+            return;
+        }
+
+        File file = new File(dir.getPath(), "Normal.yml");
+        file.getParentFile().mkdirs();
+        FileConfiguration configuration = ConfigManagerDefaultTiers.normalCrateTier();
+        configuration.options().copyDefaults(true);
+        try {
+            configuration.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public List<CrateTier> readTiersFromConfigs(CrateController crateController) throws IOException, InvalidConfigurationException {
         List<CrateTier> crateTiers = new ArrayList<>();
+        List<FileConfiguration> configurations = loadCratesFiles();
         int prevChance = 0;
-        for (String identifier : plugin.getConfig().getConfigurationSection(CRATE).getKeys(false)) {
-            ConfigurationSection section = plugin.getConfig().getConfigurationSection(CRATE + "." + identifier);
-            if (section != null) {
-                CrateTier crateTier = setupTier(section, crateController, prevChance);
-                prevChance = crateTier.getChance();
-                crateTiers.add(crateTier);
-            }
+        for (FileConfiguration configuration : configurations) {
+            CrateTier crateTier = setupTier(configuration, crateController, prevChance);
+            prevChance = crateTier.getChance();
+            crateTiers.add(crateTier);
         }
         return crateTiers;
     }
 
-    private CrateTier setupTier(ConfigurationSection section, CrateController crateController, int prevChance) {
-        String name = section.getString(NAME);
-        String hdText = section.getString(HD);
-        int chance = section.getInt(CHANCE) + prevChance;
-        float speed = (float) section.getDouble(SPEED);
-        double price = section.getDouble(PRICE);
-        ConfigurationSection rewardsSection = section.getConfigurationSection(REWARDS);
+    private List<FileConfiguration> loadCratesFiles() throws IOException, InvalidConfigurationException {
+        File dir = new File(plugin.getDataFolder() + File.separator + CRATE);
+        File[] files = dir.listFiles();
+        FileConfiguration configuration;
+        List<FileConfiguration> configurations = new ArrayList<>();
+        for (File file : files) {
+            configuration = new YamlConfiguration();
+            configuration.load(file);
+            configurations.add(configuration);
+        }
+        return configurations;
+    }
+
+    private CrateTier setupTier(FileConfiguration configuration, CrateController crateController, int prevChance) {
+        String name = configuration.getString(NAME);
+        String hdText = configuration.getString(HD);
+        int chance = configuration.getInt(CHANCE) + prevChance;
+        float speed = (float) configuration.getDouble(SPEED);
+        double price = configuration.getDouble(PRICE);
+        ConfigurationSection rewardsSection = configuration.getConfigurationSection(REWARDS);
         List<Pair<ItemStack, Integer>> rewards = readRewardsFromConfigs(rewardsSection);
 
-        CrateTier crateTier = new CrateTier(crateController, section.getName(), chance, speed, rewards);
+        CrateTier crateTier = new CrateTier(crateController, configuration.getName(), chance, speed, rewards);
 
         if (name != null) {
             crateTier.setName(name);

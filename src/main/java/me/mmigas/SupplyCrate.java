@@ -32,7 +32,7 @@ public class SupplyCrate extends JavaPlugin {
     @Override
     public void onEnable() {
         int pluginId = 8870;
-        Metrics metrics = new Metrics(this, pluginId);
+        //Metrics metrics = new Metrics(this, pluginId);
         instance = this;
         isWorldGuardEnabled = checkWorldGuard();
         isGriefPreventionEnabled = checkGriefPrevention();
@@ -85,6 +85,10 @@ public class SupplyCrate extends JavaPlugin {
         }
         economy = rsp.getProvider();
         return true;
+    }
+
+    public void disablePlugin() {
+        getPluginLoader().disablePlugin(this);
     }
 
     private boolean checkHd() {
