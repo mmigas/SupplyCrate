@@ -64,7 +64,7 @@ public class ConfigManager {
         if (!dir.exists()) {
             Bukkit.getLogger().log(Level.INFO, "No Crates folder found. Creating a new one.");
         } else if (dir.listFiles().length == 0) {
-            Bukkit.getLogger().log(Level.INFO, "No Crate tiers found. Creating deafult ones.");
+            Bukkit.getLogger().log(Level.INFO, "No Crate tiers found. Creating default ones.");
         } else {
             return;
         }
