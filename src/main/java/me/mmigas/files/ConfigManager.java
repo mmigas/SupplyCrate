@@ -69,17 +69,28 @@ public class ConfigManager {
             return;
         }
 
-        File file = new File(dir.getPath(), "Normal.yml");
-        file.getParentFile().mkdirs();
-        FileConfiguration configuration = ConfigManagerDefaultTiers.normalCrateTier();
-        configuration.options().copyDefaults(true);
-        try {
-            configuration.save(file);
-        } catch (
-                IOException e) {
-            e.printStackTrace();
-        }
+        createDefaults(dir);
+    }
 
+    private void createDefaults(File dir) {
+        Map<String, FileConfiguration> defaults = new HashMap<>();
+        defaults.put("Normal.yml", ConfigManagerDefaultTiers.normalCrateTier());
+        defaults.put("Epic.yml", ConfigManagerDefaultTiers.epicCrateTier());
+
+        File file;
+        FileConfiguration configuration;
+        for (Map.Entry<String, FileConfiguration> entry : defaults.entrySet()) {
+            file = new File(dir.getPath(), entry.getKey());
+            file.getParentFile().mkdirs();
+            configuration = entry.getValue();
+            configuration.options().copyDefaults(true);
+            try {
+                configuration.save(file);
+            } catch (
+                    IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public List<CrateTier> readTiersFromConfigs(CrateController crateController) throws IOException, InvalidConfigurationException {

@@ -34,4 +34,20 @@ public class ConfigManagerDefaultTiers {
         configuration.options().copyDefaults(true);
         return configuration;
     }
+
+    static FileConfiguration epicCrateTier() {
+        FileConfiguration configuration = new YamlConfiguration();
+        configuration.addDefault(ConfigManager.NAME, "EPIC");
+        configuration.addDefault(ConfigManager.HD, "-------------\nEPIC Crate\n-------------");
+        configuration.addDefault(ConfigManager.CHANCE, 10);
+        configuration.addDefault(ConfigManager.SPEED, 0.1);
+        configuration.addDefault(ConfigManager.PRICE, 1000000);
+        configuration.addDefault(ConfigManager.REWARDS + ".Diamond_Chestplate.Name", "ARMOR");
+        configuration.addDefault(ConfigManager.REWARDS + ".Diamond_Chestplate.Lore", "THIS IS MY LORE");
+        configuration.addDefault(ConfigManager.REWARDS + ".Diamond_Chestplate.Chance", 50);
+        configuration.addDefault(ConfigManager.REWARDS + ".Diamond_Chestplate.Enchancts.Protection", 1);
+        configuration.addDefault(ConfigManager.REWARDS + ".Diamond_Chestplate.Enchancts.Unbreaking", 2);
+        configuration.options().copyDefaults(true);
+        return configuration;
+    }
 }
