@@ -42,7 +42,7 @@ public class Item {
         return this;
     }
 
-    public List<IClickAction> getIclickActions() {
+    public List<IClickAction> getIClickActions() {
         return iClickActions;
     }
 

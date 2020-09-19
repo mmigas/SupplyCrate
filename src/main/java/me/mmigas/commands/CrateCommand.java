@@ -32,6 +32,7 @@ public class CrateCommand implements CommandExecutor, TabCompleter {
         commands.add(new Timer(controller));
         commands.add(new Info(controller));
         commands.add(new Buy(controller));
+        commands.add(new MenuCommand(controller));
     }
 
     @Override

@@ -1,10 +1,9 @@
 package me.mmigas.listeners;
 
-import me.mmigas.SupplyCrate;
-import me.mmigas.crates.CrateEvent;
-import me.mmigas.crates.CrateTier;
 import me.mmigas.files.LanguageManager;
 import me.mmigas.gui.Gui;
+import me.mmigas.gui.IClickAction;
+import me.mmigas.gui.Item;
 import me.mmigas.persistence.CratesRepository;
 import me.mmigas.utils.InventoryUtil;
 import org.bukkit.Material;
@@ -15,23 +14,35 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.inventory.ItemStack;
 
 
 public class InventoryListener implements Listener {
     @EventHandler
     public void onInventoryClickEvent(InventoryClickEvent event) {
         if (event.getClickedInventory() != null && event.getClickedInventory().getHolder() instanceof Gui) {
+
+            Player player = (Player) event.getWhoClicked();
+            ItemStack itemStack = event.getCurrentItem();
+
+            if (itemStack == null || itemStack.getType() == Material.AIR) {
+                return;
+            }
+
             event.setCancelled(true);
+
+            Gui gui = (Gui) event.getView().getTopInventory().getHolder();
+            Item item = gui.getItem(event.getRawSlot());
+            if (item == null) {
+                return;
+            }
+
+            for (IClickAction IClickAction : item.getIClickActions()) {
+                IClickAction.execute(player);
+            }
         }
     }
 
-    @EventHandler
-    public void onInventoryClickEvent(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof Gui) {
-            event.setCancelled(true);
-        }
-    }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
