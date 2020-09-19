@@ -137,14 +137,21 @@ public class CrateEvent implements Observer {
         chest.update();
 
         List<ItemStack> rewards = generateMaterials();
-        Inventory inventory = chest.getInventory();
-        for (ItemStack itemStack : rewards) {
-            inventory.addItem(itemStack);
-        }
+        addItemsToChest(chest.getInventory(), rewards);
 
         landingTime = LocalDateTime.now();
         location = chest.getLocation();
         crateTier.spawnHD(id, location);
+    }
+
+    private void addItemsToChest(Inventory inventory, List<ItemStack> rewards) {
+        for (ItemStack item : rewards) {
+            int itemSlot;
+            do {
+                itemSlot = RANDOM.nextInt(26);
+            } while (inventory.getItem(itemSlot) != null);
+            inventory.setItem(itemSlot, item);
+        }
     }
 
     private List<ItemStack> generateMaterials() {

@@ -20,9 +20,12 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 public class ConfigManager {
@@ -60,16 +63,19 @@ public class ConfigManager {
     }
 
     private void addDefaultCrate() {
+        Lock mutex = new ReentrantLock();
+        mutex.lock();
         File dir = new File(plugin.getDataFolder() + File.separator + CRATE);
         if (!dir.exists()) {
-            Bukkit.getLogger().log(Level.INFO, "No Crates folder found. Creating a new one.");
+            Bukkit.getLogger().log(Level.INFO, "[SupplyCrate] No Crates folder found. Creating a new one.");
         } else if (dir.listFiles().length == 0) {
-            Bukkit.getLogger().log(Level.INFO, "No Crate tiers found. Creating default ones.");
+            Bukkit.getLogger().log(Level.INFO, "[SupplyCrate] No Crate tiers found. Creating default ones.");
         } else {
             return;
         }
 
         createDefaults(dir);
+        mutex.unlock();
     }
 
     private void createDefaults(File dir) {
