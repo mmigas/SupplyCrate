@@ -22,9 +22,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 public class ConfigManager {
@@ -63,7 +61,11 @@ public class ConfigManager {
 
     private void addDefaultCrate() {
         File dir = new File(plugin.getDataFolder() + File.separator + CRATE);
-        if (dir.exists() && dir.listFiles().length > 0) {
+        if (!dir.exists()) {
+            Bukkit.getLogger().log(Level.INFO, "No Crates folder found. Creating a new one.");
+        } else if (dir.listFiles().length == 0) {
+            Bukkit.getLogger().log(Level.INFO, "No Crate tiers found. Creating deafult ones.");
+        } else {
             return;
         }
 
@@ -73,7 +75,8 @@ public class ConfigManager {
         configuration.options().copyDefaults(true);
         try {
             configuration.save(file);
-        } catch (IOException e) {
+        } catch (
+                IOException e) {
             e.printStackTrace();
         }
 
@@ -81,30 +84,30 @@ public class ConfigManager {
 
     public List<CrateTier> readTiersFromConfigs(CrateController crateController) throws IOException, InvalidConfigurationException {
         List<CrateTier> crateTiers = new ArrayList<>();
-        List<FileConfiguration> configurations = loadCratesFiles();
+        Map<String, FileConfiguration> configurations = loadCratesFiles();
         int prevChance = 0;
-        for (FileConfiguration configuration : configurations) {
-            CrateTier crateTier = setupTier(configuration, crateController, prevChance);
+        for (Map.Entry<String, FileConfiguration> entry : configurations.entrySet()) {
+            CrateTier crateTier = setupTier(entry.getKey(), entry.getValue(), crateController, prevChance);
             prevChance = crateTier.getChance();
             crateTiers.add(crateTier);
         }
         return crateTiers;
     }
 
-    private List<FileConfiguration> loadCratesFiles() throws IOException, InvalidConfigurationException {
+    private Map<String, FileConfiguration> loadCratesFiles() throws IOException, InvalidConfigurationException {
         File dir = new File(plugin.getDataFolder() + File.separator + CRATE);
         File[] files = dir.listFiles();
         FileConfiguration configuration;
-        List<FileConfiguration> configurations = new ArrayList<>();
+        Map<String, FileConfiguration> configurations = new HashMap<>();
         for (File file : files) {
             configuration = new YamlConfiguration();
             configuration.load(file);
-            configurations.add(configuration);
+            configurations.put(file.getName().replace(".yml", ""), configuration);
         }
         return configurations;
     }
 
-    private CrateTier setupTier(FileConfiguration configuration, CrateController crateController, int prevChance) {
+    private CrateTier setupTier(String id, FileConfiguration configuration, CrateController crateController, int prevChance) {
         String name = configuration.getString(NAME);
         String hdText = configuration.getString(HD);
         int chance = configuration.getInt(CHANCE) + prevChance;
@@ -113,7 +116,7 @@ public class ConfigManager {
         ConfigurationSection rewardsSection = configuration.getConfigurationSection(REWARDS);
         List<Pair<ItemStack, Integer>> rewards = readRewardsFromConfigs(rewardsSection);
 
-        CrateTier crateTier = new CrateTier(crateController, configuration.getName(), chance, speed, rewards);
+        CrateTier crateTier = new CrateTier(crateController, id, chance, speed, rewards);
 
         if (name != null) {
             crateTier.setName(name);
@@ -200,7 +203,7 @@ public class ConfigManager {
             }
 
         } else {
-            Bukkit.getLogger().log(Level.WARNING, String.format("The %s has an no chance.", itemName));
+            Bukkit.getLogger().log(Level.WARNING, String.format("The %s has no chance.", itemName));
             return -1;
         }
     }

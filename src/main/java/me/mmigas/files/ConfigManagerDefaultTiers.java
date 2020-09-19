@@ -26,6 +26,7 @@ public class ConfigManagerDefaultTiers {
         configuration.addDefault(ConfigManager.REWARDS + ".Potion.Effects.Speed.Multiplier", 5);
         configuration.addDefault(ConfigManager.REWARDS + ".Splash_Potion.Name", "DIE DIE");
         configuration.addDefault(ConfigManager.REWARDS + ".Splash_Potion.LORE", "You're dead to me");
+        configuration.addDefault(ConfigManager.REWARDS + ".Splash_Potion.Chance", 50);
         configuration.addDefault(ConfigManager.REWARDS + ".Splash_Potion.Effects.Harm.Duration", 10);
         configuration.addDefault(ConfigManager.REWARDS + ".Splash_Potion.Effects.Harm.Multiplier", 10);
         configuration.addDefault(ConfigManager.REWARDS + ".Splash_Potion.Effects.Poison.Duration", 10);
